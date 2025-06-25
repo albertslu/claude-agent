@@ -1,0 +1,8 @@
+# Ignore temporary files
+*.tmp
+*.log
+.DS_Store
+
+# Don't track the symbolic link content, just the link itself
+tasks-live/*
+!tasks-live/.gitkeep
