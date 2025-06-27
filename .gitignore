@@ -6,3 +6,6 @@
 # Don't track the symbolic link content, just the link itself
 tasks-live/*
 !tasks-live/.gitkeep
+
+# Ignore virtual environment
+venv/
