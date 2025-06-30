@@ -9,3 +9,7 @@ tasks-live/*
 
 # Ignore virtual environment
 venv/
+venv/bin/python
+venv/bin/python3
+venv/bin/python3.12
+venv/lib64

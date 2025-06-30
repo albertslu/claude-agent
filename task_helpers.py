@@ -12,8 +12,10 @@ import os
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 
-# Base path for tasks
-TASKS_BASE_PATH = "/home/lbert/tasks-live"
+# Base path for tasks - can be overridden
+def get_tasks_base_path() -> str:
+    """Get the base path for tasks from environment or default."""
+    return os.getenv("VISTA3D_TASKS_BASE_PATH", os.path.expanduser("~/tasks-live"))
 
 def generate_task_id(prefix: str = "task") -> str:
     """Generate a unique task ID with timestamp."""
@@ -151,14 +153,15 @@ def create_segman_task(
     
     return task
 
-def submit_task(task: Dict, task_folder: str, filename: Optional[str] = None) -> str:
+def submit_task(task: Dict, task_folder: str, filename: Optional[str] = None, tasks_base_path: Optional[str] = None) -> str:
     """
     Submit a task by writing JSON file to the appropriate folder.
     
     Args:
         task: Task dictionary
-        task_folder: Folder name under TASKS_BASE_PATH
+        task_folder: Folder name under tasks base path
         filename: Custom filename (auto-generated if None)
+        tasks_base_path: Base path for tasks (uses default if None)
     
     Returns:
         Path to the created task file
@@ -173,7 +176,8 @@ def submit_task(task: Dict, task_folder: str, filename: Optional[str] = None) ->
     if not filename.endswith('.json'):
         filename += '.json'
     
-    folder_path = Path(TASKS_BASE_PATH) / task_folder
+    base_path = tasks_base_path or get_tasks_base_path()
+    folder_path = Path(base_path) / task_folder
     folder_path.mkdir(parents=True, exist_ok=True)
     
     task_file_path = folder_path / filename
@@ -189,7 +193,8 @@ def submit_vista3d_task(
     point_coordinates: List[int],
     point_type: str = "positive",
     label: int = 1,
-    additional_points: Optional[List[Dict]] = None
+    additional_points: Optional[List[Dict]] = None,
+    tasks_base_path: Optional[str] = None
 ) -> str:
     """
     Create and submit a Vista3D point task.
@@ -206,7 +211,7 @@ def submit_vista3d_task(
         additional_points=additional_points
     )
     
-    return submit_task(task, "Vista3D")
+    return submit_task(task, "Vista3D", tasks_base_path=tasks_base_path)
 
 def submit_sam_task(
     input_file: str,
@@ -215,7 +220,8 @@ def submit_sam_task(
     image_series_uid: str,
     modality: str = "MR",
     box: Optional[List[int]] = None,
-    roi_index: Optional[List[int]] = None
+    roi_index: Optional[List[int]] = None,
+    tasks_base_path: Optional[str] = None
 ) -> str:
     """
     Create and submit a SAM task.
@@ -233,20 +239,22 @@ def submit_sam_task(
         roi_index=roi_index
     )
     
-    return submit_task(task, "SAM")
+    return submit_task(task, "SAM", tasks_base_path=tasks_base_path)
 
-def check_task_status(task_id: str, task_folder: str) -> Dict:
+def check_task_status(task_id: str, task_folder: str, tasks_base_path: Optional[str] = None) -> Dict:
     """
     Check the status of a submitted task.
     
     Args:
         task_id: Task ID to check
         task_folder: Folder where task was submitted
+        tasks_base_path: Base path for tasks (uses default if None)
     
     Returns:
         Dictionary with status information
     """
-    folder_path = Path(TASKS_BASE_PATH) / task_folder
+    base_path = tasks_base_path or get_tasks_base_path()
+    folder_path = Path(base_path) / task_folder
     
     # Check if task is still in queue
     pending_file = folder_path / f"{task_id}.json"
@@ -275,12 +283,12 @@ def check_task_status(task_id: str, task_folder: str) -> Dict:
     return {"status": "not_found"}
 
 # Example usage functions for few-shot learning
-def example_brain_metastases_segmentation():
+def example_brain_metastases_segmentation(
+    input_file: str = "/path/to/image.nii.gz",
+    output_dir: str = "/path/to/output/Vista3D/",
+    tasks_base_path: Optional[str] = None
+):
     """Example: Submit a brain metastases segmentation task."""
-    # This would typically use real file paths from the system
-    input_file = "C:/ARTDaemon/Segman/dcm2nifti/HASH/UID/image.nii.gz"
-    output_dir = "C:/ARTDaemon/Segman/dcm2nifti/HASH/UID/Vista3D/"
-    
     # Point coordinates for a suspected metastasis
     point_coords = [113, 203, 96]
     
@@ -289,19 +297,21 @@ def example_brain_metastases_segmentation():
         output_directory=output_dir,
         point_coordinates=point_coords,
         point_type="positive",
-        label=1
+        label=1,
+        tasks_base_path=tasks_base_path
     )
     
     print(f"Submitted brain metastases segmentation task: {task_file}")
     return task_file
 
-def example_interactive_sam_segmentation():
+def example_interactive_sam_segmentation(
+    input_file: str = "/path/to/image.nii.gz",
+    output_file: str = "/path/to/output/SAM/SAM_raw.nii.gz",
+    output_folder: str = "/path/to/output/SAM/",
+    series_uid: str = "1.3.12.2.1107.5.2.43.66059.9420413823708647.0.0.0",
+    tasks_base_path: Optional[str] = None
+):
     """Example: Submit an interactive SAM segmentation task."""
-    input_file = "C:/ARTDaemon/Segman/dcm2nifti/HASH/UID/image.nii.gz"
-    output_file = "dcm2nifti/HASH/UID/SAM/SAM_raw.nii.gz"
-    output_folder = "dcm2nifti/HASH/UID/SAM/"
-    series_uid = "1.3.12.2.1107.5.2.43.66059.9420413823708647.0.0.0"
-    
     # Bounding box around region of interest
     bounding_box = [194, 104, 211, 121]
     roi_center = [202, 112]
@@ -313,7 +323,8 @@ def example_interactive_sam_segmentation():
         image_series_uid=series_uid,
         modality="MR",
         box=bounding_box,
-        roi_index=roi_center
+        roi_index=roi_center,
+        tasks_base_path=tasks_base_path
     )
     
     print(f"Submitted SAM segmentation task: {task_file}")

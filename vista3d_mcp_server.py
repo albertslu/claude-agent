@@ -10,6 +10,7 @@ import json
 import sys
 import time
 import os
+import argparse
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 
@@ -17,14 +18,31 @@ from typing import Dict, List, Any, Optional
 class Vista3DMCPServer:
     """MCP Server for Vista3D task management."""
     
-    def __init__(self):
-        self.tasks_base_path = "/home/lbert/tasks-live"
+    def __init__(self, tasks_base_path: Optional[str] = None):
+        # Use provided path, environment variable, or default
+        self.tasks_base_path = (
+            tasks_base_path or 
+            os.getenv("VISTA3D_TASKS_BASE_PATH") or 
+            os.path.expanduser("~/tasks-live")
+        )
+        
         self.vista3d_tasks_path = Path(self.tasks_base_path) / "Vista3D" / "tasks"
         self.vista3d_processed_path = Path(self.tasks_base_path) / "Vista3D" / "processed"
         
-        # Ensure directories exist
-        self.vista3d_tasks_path.mkdir(parents=True, exist_ok=True)
-        self.vista3d_processed_path.mkdir(parents=True, exist_ok=True)
+        # Validate and create directories
+        self._validate_and_create_directories()
+    
+    def _validate_and_create_directories(self):
+        """Validate base path exists and create required directories."""
+        base_path = Path(self.tasks_base_path)
+        if not base_path.parent.exists():
+            raise ValueError(f"Parent directory does not exist: {base_path.parent}")
+        
+        try:
+            self.vista3d_tasks_path.mkdir(parents=True, exist_ok=True)
+            self.vista3d_processed_path.mkdir(parents=True, exist_ok=True)
+        except PermissionError:
+            raise ValueError(f"Permission denied creating directories in: {self.tasks_base_path}")
     
     def generate_task_id(self, prefix: str = "vista3d_point") -> str:
         """Generate a unique task ID with timestamp."""
@@ -34,14 +52,14 @@ class Vista3DMCPServer:
     def create_vista3d_task(
         self,
         point_coordinates: List[int],
-        input_file: str = "C:/ARTDaemon/Segman/dcm2nifti/GGJJVZPCBPSSDVRV/MR.1.3.12.2.1107.5.2.43.66059.9420413823708647.0.0.0/image.nii.gz",
-        output_directory: str = "C:/ARTDaemon/Segman/dcm2nifti/GGJJVZPCBPSSDVRV/MR.1.3.12.2.1107.5.2.43.66059.9420413823708647.0.0.0/Vista3D/",
+        input_file: str,
+        output_directory: str,
         point_type: str = "positive",
         label: int = 1,
         additional_points: Optional[List[Dict]] = None,
-        patient_id: str = "GGJJVZPCBPSSDVRV",
+        patient_id: Optional[str] = None,
         modality: str = "MR",
-        series_uid: str = "1.3.12.2.1107.5.2.43.66059.9420413823708647.0.0.0",
+        series_uid: Optional[str] = None,
         task_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Create a Vista3D point-based segmentation task."""
@@ -57,10 +75,14 @@ class Vista3DMCPServer:
             "point_coordinates": point_coordinates,
             "point_type": point_type,
             "label": label,
-            "patientId": patient_id,
-            "modality": modality,
-            "seriesInstanceUID": series_uid
+            "modality": modality
         }
+        
+        # Only include optional fields if provided
+        if patient_id:
+            task["patientId"] = patient_id
+        if series_uid:
+            task["seriesInstanceUID"] = series_uid
         
         if additional_points:
             task["additional_points"] = additional_points
@@ -136,11 +158,21 @@ class Vista3DMCPServer:
     
     def list_available_images(self) -> List[str]:
         """List available input images in the system."""
-        # This would scan the dcm2nifti folder structure
-        # For now, return the known test image
-        return [
-            "C:/ARTDaemon/Segman/dcm2nifti/GGJJVZPCBPSSDVRV/MR.1.3.12.2.1107.5.2.43.66059.9420413823708647.0.0.0/image.nii.gz"
-        ]
+        # Check for images in common locations
+        image_paths = []
+        
+        # Check environment variable for image directories
+        image_dirs = os.getenv("VISTA3D_IMAGE_DIRS", "").split(":")
+        
+        for dir_path in image_dirs:
+            if dir_path and Path(dir_path).exists():
+                # Look for .nii.gz files
+                for img_file in Path(dir_path).rglob("*.nii.gz"):
+                    if img_file.name == "image.nii.gz":  # Standard naming
+                        image_paths.append(str(img_file))
+        
+        # If no images found via environment, return empty list with helpful message
+        return image_paths if image_paths else []
     
     def handle_mcp_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Handle MCP protocol requests."""
@@ -193,10 +225,22 @@ class Vista3DMCPServer:
                                     },
                                     "input_file": {
                                         "type": "string",
-                                        "description": "Path to input NIfTI file (optional, uses default)"
+                                        "description": "Path to input NIfTI file (required)"
+                                    },
+                                    "output_directory": {
+                                        "type": "string",
+                                        "description": "Path to output directory (required)"
+                                    },
+                                    "patient_id": {
+                                        "type": "string",
+                                        "description": "Patient ID (optional)"
+                                    },
+                                    "series_uid": {
+                                        "type": "string",
+                                        "description": "Series instance UID (optional)"
                                     }
                                 },
-                                "required": ["point_coordinates"]
+                                "required": ["point_coordinates", "input_file", "output_directory"]
                             }
                         },
                         {
@@ -231,20 +275,35 @@ class Vista3DMCPServer:
             
             try:
                 if tool_name == "submit_vista3d_point_task":
-                    # Extract parameters
+                    # Extract required parameters
                     point_coordinates = arguments.get("point_coordinates")
+                    input_file = arguments.get("input_file")
+                    output_directory = arguments.get("output_directory")
+                    
+                    # Validate required parameters
+                    if not point_coordinates:
+                        raise ValueError("point_coordinates is required")
+                    if not input_file:
+                        raise ValueError("input_file is required")
+                    if not output_directory:
+                        raise ValueError("output_directory is required")
+                    
+                    # Extract optional parameters
                     point_type = arguments.get("point_type", "positive")
                     additional_points = arguments.get("additional_points", [])
-                    input_file = arguments.get("input_file")
+                    patient_id = arguments.get("patient_id")
+                    series_uid = arguments.get("series_uid")
                     
                     # Create task
                     task_params = {
                         "point_coordinates": point_coordinates,
+                        "input_file": input_file,
+                        "output_directory": output_directory,
                         "point_type": point_type,
-                        "additional_points": additional_points
+                        "additional_points": additional_points,
+                        "patient_id": patient_id,
+                        "series_uid": series_uid
                     }
-                    if input_file:
-                        task_params["input_file"] = input_file
                     
                     task = self.create_vista3d_task(**task_params)
                     task_file_path = self.submit_task(task)
@@ -375,6 +434,59 @@ class Vista3DMCPServer:
             print(f"Server error: {e}", file=sys.stderr)
 
 
+def parse_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        description="Vista3D MCP Server for medical image segmentation tasks",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Use default tasks directory (~/.tasks-live)
+  python vista3d_mcp_server.py
+  
+  # Specify custom tasks directory
+  python vista3d_mcp_server.py --tasks-path /path/to/tasks
+  
+  # Specify image directories for discovery
+  python vista3d_mcp_server.py --tasks-path /data/tasks --image-dirs /data/images:/data/scans
+  
+Environment Variables:
+  VISTA3D_TASKS_BASE_PATH    Default tasks directory (overridden by --tasks-path)
+  VISTA3D_IMAGE_DIRS         Colon-separated image directories for discovery
+        """
+    )
+    
+    parser.add_argument(
+        "--tasks-path",
+        type=str,
+        help="Base directory for task processing (default: ~/tasks-live or VISTA3D_TASKS_BASE_PATH)"
+    )
+    
+    parser.add_argument(
+        "--image-dirs",
+        type=str,
+        help="Colon-separated directories to search for input images (also sets VISTA3D_IMAGE_DIRS)"
+    )
+    
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    server = Vista3DMCPServer()
-    server.run()
+    args = parse_args()
+    
+    # Set environment variables from command line args
+    if args.image_dirs:
+        os.environ["VISTA3D_IMAGE_DIRS"] = args.image_dirs
+    
+    try:
+        server = Vista3DMCPServer(tasks_base_path=args.tasks_path)
+        server.run()
+    except ValueError as e:
+        print(f"Configuration error: {e}", file=sys.stderr)
+        sys.exit(1)
+    except KeyboardInterrupt:
+        print("Server stopped by user", file=sys.stderr)
+        sys.exit(0)
+    except Exception as e:
+        print(f"Server error: {e}", file=sys.stderr)
+        sys.exit(1)
