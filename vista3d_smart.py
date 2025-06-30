@@ -195,6 +195,9 @@ Output: {"command": "status", "task_id": "vista3d_point_1751302930147"}"""
                 
             elif parsed_cmd['command'] == 'list':
                 result = self.cli.list_images()
+                # Limit list output to avoid crashes
+                if len(str(result)) > 2000:
+                    result = str(result)[:2000] + "... [truncated - too many files]"
                 return f"📁 {result}"
                 
         except Exception as e:
@@ -227,17 +230,27 @@ Output: {"command": "status", "task_id": "vista3d_point_1751302930147"}"""
                 
                 # Parse with LLM
                 parsed = self.llm_parse_command(user_input)
-                print(f"🔍 Understood: {json.dumps(parsed, indent=2)}")
+                # Limit parsed output to avoid crashes
+                parsed_str = json.dumps(parsed, indent=2)
+                if len(parsed_str) > 500:
+                    parsed_str = parsed_str[:500] + "... [truncated]"
+                print(f"🔍 Understood: {parsed_str}")
                 
                 # Execute command
                 result = self.execute_smart_command(parsed)
+                # Limit result output to avoid crashes
+                if len(result) > 1000:
+                    result = result[:1000] + "... [truncated]"
                 print(f"🎯 Result: {result}\n")
                 
             except KeyboardInterrupt:
                 print("\n👋 Goodbye!")
                 break
             except Exception as e:
-                print(f"❌ Error: {e}\n")
+                error_msg = str(e)
+                if len(error_msg) > 200:
+                    error_msg = error_msg[:200] + "... [truncated]"
+                print(f"❌ Error: {error_msg}\n")
 
 def main():
     if len(sys.argv) > 1:
@@ -247,9 +260,16 @@ def main():
         
         print(f"🤖 Processing: '{command}'")
         parsed = client.llm_parse_command(command)
-        print(f"🔍 Parsed: {json.dumps(parsed, indent=2)}")
+        # Limit parsed output to avoid crashes
+        parsed_str = json.dumps(parsed, indent=2)
+        if len(parsed_str) > 500:
+            parsed_str = parsed_str[:500] + "... [truncated]"
+        print(f"🔍 Parsed: {parsed_str}")
         
         result = client.execute_smart_command(parsed)
+        # Limit result output to avoid crashes
+        if len(result) > 1000:
+            result = result[:1000] + "... [truncated]"
         print(f"\n{result}")
     else:
         # Interactive chat mode
