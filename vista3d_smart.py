@@ -9,6 +9,7 @@ import re
 import os
 import sys
 import subprocess
+import openai
 from typing import Dict, Any
 from vista3d_cli import Vista3DCLI
 
@@ -17,6 +18,11 @@ class Vista3DSmartClient:
         self.cli = Vista3DCLI(tasks_path, image_dirs)
         self.tasks_path = tasks_path
         self.image_dirs = image_dirs
+        
+        # Initialize OpenAI client
+        self.openai_client = openai.OpenAI(
+            api_key=os.getenv('OPENAI_API_KEY')
+        )
         
     def llm_parse_command(self, user_input: str) -> Dict[str, Any]:
         """Use LLM to parse natural language command"""
@@ -49,77 +55,28 @@ Output: {"command": "status", "task_id": "vista3d_point_1751302930147"}"""
 
         user_prompt = f"Parse this request: {user_input}"
         
-        # Try to use local LLM (ollama) if available
-        try:
-            result = subprocess.run([
-                "ollama", "run", "llama3.2:1b", 
-                f"{system_prompt}\n\nUser: {user_prompt}\nAssistant:"
-            ], capture_output=True, text=True, timeout=30)
+        # Use OpenAI GPT-4o mini
+        if not self.openai_client.api_key:
+            raise ValueError("OpenAI API key not found. Please set OPENAI_API_KEY environment variable.")
             
-            if result.returncode == 0 and result.stdout.strip():
-                # Extract JSON from response
-                response = result.stdout.strip()
-                json_match = re.search(r'\{.*\}', response, re.DOTALL)
-                if json_match:
-                    return json.loads(json_match.group())
-                    
-        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, json.JSONDecodeError, FileNotFoundError):
-            pass
-            
-        # Fallback to rule-based parsing
-        return self.fallback_parse(user_input)
+        response = self.openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=200,
+            temperature=0
+        )
         
-    def fallback_parse(self, text: str) -> Dict[str, Any]:
-        """Fallback rule-based parsing when LLM is not available"""
-        result = {}
-        text_lower = text.lower()
+        response_text = response.choices[0].message.content.strip()
+        # Extract JSON from response
+        json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+        if json_match:
+            return json.loads(json_match.group())
+        else:
+            raise ValueError(f"Could not parse JSON from response: {response_text}")
         
-        # Determine command
-        if any(word in text_lower for word in ['submit', 'create', 'start', 'run', 'segment']):
-            result['command'] = 'submit'
-        elif any(word in text_lower for word in ['status', 'check', 'progress']):
-            result['command'] = 'status'
-        elif any(word in text_lower for word in ['list', 'show', 'images']):
-            result['command'] = 'list'
-        else:
-            result['command'] = 'submit'  # Default
-            
-        # Extract coordinates
-        coord_match = re.search(r'(\d+)\s*,?\s*(\d+)\s*,?\s*(\d+)', text)
-        if coord_match:
-            result['coordinates'] = [int(coord_match.group(1)), int(coord_match.group(2)), int(coord_match.group(3))]
-        else:
-            result['coordinates'] = None
-            
-        # Extract file paths
-        file_match = re.search(r'["\']?([^"\']+\.nii(?:\.gz)?)["\']?', text)
-        if file_match:
-            result['input_file'] = file_match.group(1)
-        else:
-            result['input_file'] = None
-            
-        # Extract output directory
-        output_match = re.search(r'(?:output|save|to)\s+["\']?([^"\']+/?)["\']?', text, re.IGNORECASE)
-        if output_match:
-            result['output_directory'] = output_match.group(1)
-        else:
-            result['output_directory'] = None
-            
-        # Extract task ID
-        task_match = re.search(r'(vista3d_point_\d+)', text)
-        if task_match:
-            result['task_id'] = task_match.group(1)
-        else:
-            result['task_id'] = None
-            
-        # Extract patient info
-        patient_match = re.search(r'patient\s+(?:id\s+)?([A-Z0-9]+)', text, re.IGNORECASE)
-        result['patient_id'] = patient_match.group(1) if patient_match else None
-        
-        series_match = re.search(r'series\s+(?:uid\s+)?([0-9.]+)', text, re.IGNORECASE)
-        result['series_uid'] = series_match.group(1) if series_match else None
-        
-        return result
         
     def smart_file_finder(self, query: str) -> str:
         """Intelligently find image files based on context"""
@@ -144,7 +101,7 @@ Output: {"command": "status", "task_id": "vista3d_point_1751302930147"}"""
                             if query.lower() in file.lower() or query in full_path:
                                 return full_path
                                 
-        # No fallback - return original query if no file found
+        # Return original query if no file found
         return query
         
     def execute_smart_command(self, parsed_cmd: Dict[str, Any]) -> str:
@@ -169,7 +126,7 @@ Output: {"command": "status", "task_id": "vista3d_point_1751302930147"}"""
                 # Smart output directory
                 output_dir = parsed_cmd.get('output_directory')
                 if not output_dir:
-                    # Create default output directory based on input
+                    # Create output directory based on input
                     if "ARTDaemon" in input_file:
                         base_dir = os.path.dirname(input_file)
                         output_dir = os.path.join(base_dir, "Vista3D/")

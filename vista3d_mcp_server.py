@@ -72,9 +72,13 @@ class Vista3DMCPServer:
             "input_file": input_file,
             "output_directory": output_directory,
             "segmentation_type": "point",
-            "point_coordinates": point_coordinates,
-            "point_type": point_type,
-            "label": label,
+            "segmentation_prompts": [
+                {
+                    "target_output_label": label,
+                    "positive_points": [point_coordinates] if point_type == "positive" else [],
+                    "negative_points": [point_coordinates] if point_type == "negative" else []
+                }
+            ],
             "modality": modality
         }
         
@@ -85,9 +89,12 @@ class Vista3DMCPServer:
             task["seriesInstanceUID"] = series_uid
         
         if additional_points:
-            task["additional_points"] = additional_points
-        else:
-            task["additional_points"] = []
+            # Add additional points to segmentation_prompts
+            for point in additional_points:
+                if point["type"] == "positive":
+                    task["segmentation_prompts"][0]["positive_points"].append(point["coordinates"])
+                elif point["type"] == "negative":
+                    task["segmentation_prompts"][0]["negative_points"].append(point["coordinates"])
         
         return task
     
@@ -105,6 +112,7 @@ class Vista3DMCPServer:
         if task_id is None:
             task_id = self.generate_task_id(prefix="full_body")
         
+        task = {
             "task_id": task_id,
             "input_file": input_file,
             "output_directory": output_directory,
@@ -122,9 +130,9 @@ class Vista3DMCPServer:
         return task
     
     def submit_task(self, task: Dict[str, Any]) -> str:
-        """Submit a task by writing JSON file to Vista3D tasks folder."""
+        """Submit a task by writing TSK file to Vista3D tasks folder."""
         task_id = task["task_id"]
-        filename = f"{task_id}.json"
+        filename = f"{task_id}.tsk"
         task_file_path = self.vista3d_tasks_path / filename
         
         try:
@@ -138,7 +146,7 @@ class Vista3DMCPServer:
         """Check the status of a submitted task."""
         
         # Check if task is still pending in tasks folder
-        pending_file = self.vista3d_tasks_path / f"{task_id}.json"
+        pending_file = self.vista3d_tasks_path / f"{task_id}.tsk"
         if pending_file.exists():
             return {
                 "status": "pending",
