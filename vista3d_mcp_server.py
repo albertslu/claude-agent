@@ -91,6 +91,36 @@ class Vista3DMCPServer:
         
         return task
     
+    def create_full_body_task(
+        self,
+        input_file: str,
+        output_directory: str,
+        description: str = None,
+        patient_id: Optional[str] = None,
+        series_uid: Optional[str] = None,
+        task_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Create a full body segmentation task."""
+        
+        if task_id is None:
+            task_id = self.generate_task_id(prefix="full_body")
+        
+            "task_id": task_id,
+            "input_file": input_file,
+            "output_directory": output_directory,
+            "segmentation_type": "full"
+        }
+        
+        # Only include optional fields if provided
+        if description:
+            task["description"] = description
+        if patient_id:
+            task["patientId"] = patient_id
+        if series_uid:
+            task["seriesInstanceUID"] = series_uid
+        
+        return task
+    
     def submit_task(self, task: Dict[str, Any]) -> str:
         """Submit a task by writing JSON file to Vista3D tasks folder."""
         task_id = task["task_id"]
@@ -156,23 +186,26 @@ class Vista3DMCPServer:
             "message": "Task not found in any location"
         }
     
-    def list_available_images(self) -> List[str]:
+    def list_available_images(self, search_directory: str = None) -> List[str]:
         """List available input images in the system."""
-        # Check for images in common locations
         image_paths = []
         
-        # Check environment variable for image directories
-        image_dirs = os.getenv("VISTA3D_IMAGE_DIRS", "").split(":")
+        if search_directory:
+            # Use provided directory
+            if Path(search_directory).exists():
+                for img_file in Path(search_directory).rglob("*.nii.gz"):
+                    image_paths.append(str(img_file))
+        else:
+            # Check environment variable for image directories
+            env_dirs = os.getenv("VISTA3D_IMAGE_DIRS", "")
+            if env_dirs:
+                image_dirs = [d.strip() for d in env_dirs.split(":") if d.strip()]
+                for dir_path in image_dirs:
+                    if dir_path and Path(dir_path).exists():
+                        for img_file in Path(dir_path).rglob("*.nii.gz"):
+                            image_paths.append(str(img_file))
         
-        for dir_path in image_dirs:
-            if dir_path and Path(dir_path).exists():
-                # Look for .nii.gz files
-                for img_file in Path(dir_path).rglob("*.nii.gz"):
-                    if img_file.name == "image.nii.gz":  # Standard naming
-                        image_paths.append(str(img_file))
-        
-        # If no images found via environment, return empty list with helpful message
-        return image_paths if image_paths else []
+        return image_paths
     
     def handle_mcp_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Handle MCP protocol requests."""
@@ -258,11 +291,46 @@ class Vista3DMCPServer:
                             }
                         },
                         {
+                            "name": "submit_full_body_task",
+                            "description": "Submit a full body segmentation task",
+                            "inputSchema": {
+                                "type": "object",
+                                "properties": {
+                                    "input_file": {
+                                        "type": "string",
+                                        "description": "Path to input NIfTI file (required)"
+                                    },
+                                    "output_directory": {
+                                        "type": "string",
+                                        "description": "Path to output directory (required)"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "description": "Description of the segmentation task (optional)"
+                                    },
+                                    "patient_id": {
+                                        "type": "string",
+                                        "description": "Patient ID (optional)"
+                                    },
+                                    "series_uid": {
+                                        "type": "string",
+                                        "description": "Series instance UID (optional)"
+                                    }
+                                },
+                                "required": ["input_file", "output_directory"]
+                            }
+                        },
+                        {
                             "name": "list_available_images",
                             "description": "List available input images for processing",
                             "inputSchema": {
                                 "type": "object",
-                                "properties": {}
+                                "properties": {
+                                    "search_directory": {
+                                        "type": "string",
+                                        "description": "Directory path to search for .nii.gz images (optional)"
+                                    }
+                                }
                             }
                         }
                     ]
@@ -350,9 +418,54 @@ class Vista3DMCPServer:
                         }
                     }
                 
+                elif tool_name == "submit_full_body_task":
+                    # Extract required parameters
+                    input_file = arguments.get("input_file")
+                    output_directory = arguments.get("output_directory")
+                    
+                    # Validate required parameters
+                    if not input_file:
+                        raise ValueError("input_file is required")
+                    if not output_directory:
+                        raise ValueError("output_directory is required")
+                    
+                    # Extract optional parameters
+                    description = arguments.get("description")
+                    patient_id = arguments.get("patient_id")
+                    series_uid = arguments.get("series_uid")
+                    
+                    # Create task
+                    task_params = {
+                        "input_file": input_file,
+                        "output_directory": output_directory,
+                        "description": description,
+                        "patient_id": patient_id,
+                        "series_uid": series_uid
+                    }
+                    
+                    task = self.create_full_body_task(**task_params)
+                    task_file_path = self.submit_task(task)
+                    
+                    return {
+                        "jsonrpc": "2.0",
+                        "id": request.get("id"),
+                        "result": {
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": f"Successfully submitted full body segmentation task!\n\nTask ID: {task['task_id']}\nTask file: {task_file_path}\nInput file: {input_file}\nOutput directory: {output_directory}\n\nTask is now queued for processing by ARTDaemon."
+                                }
+                            ]
+                        }
+                    }
+                
                 elif tool_name == "list_available_images":
-                    images = self.list_available_images()
-                    images_text = "Available input images:\n" + "\n".join(f"- {img}" for img in images)
+                    search_directory = arguments.get("search_directory")
+                    images = self.list_available_images(search_directory)
+                    if search_directory:
+                        images_text = f"Available input images in {search_directory}:\n" + "\n".join(f"- {img}" for img in images)
+                    else:
+                        images_text = "Available input images:\n" + "\n".join(f"- {img}" for img in images)
                     
                     return {
                         "jsonrpc": "2.0",
@@ -425,9 +538,16 @@ class Vista3DMCPServer:
                     # Invalid JSON input
                     continue
                 except Exception as e:
-                    # Log error to stderr (won't interfere with MCP protocol)
-                    print(f"Error processing request: {e}", file=sys.stderr)
-                    continue
+                    # Send proper error response
+                    error_response = {
+                        "jsonrpc": "2.0",
+                        "id": request.get("id") if 'request' in locals() else None,
+                        "error": {
+                            "code": -32603,
+                            "message": f"Internal error: {str(e)}"
+                        }
+                    }
+                    print(json.dumps(error_response), flush=True)
         except KeyboardInterrupt:
             pass
         except Exception as e:

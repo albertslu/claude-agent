@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "vista3d": {
+      "type": "stdio",
+      "command": "python3",
+      "args": [
+        "/home/lbert/claude-agent/vista3d_mcp_server.py"
+      ],
+      "env": {}
+    }
+  }
+}

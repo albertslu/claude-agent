@@ -144,9 +144,8 @@ Output: {"command": "status", "task_id": "vista3d_point_1751302930147"}"""
                             if query.lower() in file.lower() or query in full_path:
                                 return full_path
                                 
-        # Use the existing known good image as fallback
-        fallback = "C:/ARTDaemon/Segman/dcm2nifti/GGJJVZPCBPSSDVRV/MR.1.3.12.2.1107.5.2.43.66059.9420413823708647.0.0.0/image.nii.gz"
-        return fallback
+        # No fallback - return original query if no file found
+        return query
         
     def execute_smart_command(self, parsed_cmd: Dict[str, Any]) -> str:
         """Execute command with smart defaults and validation"""
@@ -196,8 +195,8 @@ Output: {"command": "status", "task_id": "vista3d_point_1751302930147"}"""
             elif parsed_cmd['command'] == 'list':
                 result = self.cli.list_images()
                 # Limit list output to avoid crashes
-                if len(str(result)) > 2000:
-                    result = str(result)[:2000] + "... [truncated - too many files]"
+                if len(str(result)) > 200:
+                    result = str(result)[:200] + "... [truncated - too many files]"
                 return f"📁 {result}"
                 
         except Exception as e:
@@ -232,15 +231,15 @@ Output: {"command": "status", "task_id": "vista3d_point_1751302930147"}"""
                 parsed = self.llm_parse_command(user_input)
                 # Limit parsed output to avoid crashes
                 parsed_str = json.dumps(parsed, indent=2)
-                if len(parsed_str) > 500:
-                    parsed_str = parsed_str[:500] + "... [truncated]"
+                if len(parsed_str) > 50:
+                    parsed_str = parsed_str[:50] + "... [truncated]"
                 print(f"🔍 Understood: {parsed_str}")
                 
                 # Execute command
                 result = self.execute_smart_command(parsed)
                 # Limit result output to avoid crashes
-                if len(result) > 1000:
-                    result = result[:1000] + "... [truncated]"
+                if len(result) > 100:
+                    result = result[:100] + "... [truncated]"
                 print(f"🎯 Result: {result}\n")
                 
             except KeyboardInterrupt:
@@ -248,8 +247,8 @@ Output: {"command": "status", "task_id": "vista3d_point_1751302930147"}"""
                 break
             except Exception as e:
                 error_msg = str(e)
-                if len(error_msg) > 200:
-                    error_msg = error_msg[:200] + "... [truncated]"
+                if len(error_msg) > 50:
+                    error_msg = error_msg[:50] + "... [truncated]"
                 print(f"❌ Error: {error_msg}\n")
 
 def main():
@@ -262,14 +261,14 @@ def main():
         parsed = client.llm_parse_command(command)
         # Limit parsed output to avoid crashes
         parsed_str = json.dumps(parsed, indent=2)
-        if len(parsed_str) > 500:
-            parsed_str = parsed_str[:500] + "... [truncated]"
+        if len(parsed_str) > 50:
+            parsed_str = parsed_str[:50] + "... [truncated]"
         print(f"🔍 Parsed: {parsed_str}")
         
         result = client.execute_smart_command(parsed)
         # Limit result output to avoid crashes
-        if len(result) > 1000:
-            result = result[:1000] + "... [truncated]"
+        if len(result) > 100:
+            result = result[:100] + "... [truncated]"
         print(f"\n{result}")
     else:
         # Interactive chat mode
