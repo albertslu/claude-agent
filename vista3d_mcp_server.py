@@ -26,8 +26,8 @@ class Vista3DMCPServer:
             os.path.expanduser("~/tasks-live")
         )
         
-        self.vista3d_tasks_path = Path("C:/ARTDaemon/Segman/dcm2nifti/Tasks/Vista3D")
-        self.vista3d_processed_path = Path(self.tasks_base_path) / "Vista3D" / "processed"
+        self.vista3d_tasks_path = Path(self.tasks_base_path) / "Vista3D"
+        self.vista3d_processed_path = Path(self.tasks_base_path.replace("tasks-live", "tasks-history")) / "Vista3d"
         
         # Validate and create directories
         self._validate_and_create_directories()
@@ -40,7 +40,7 @@ class Vista3DMCPServer:
         
         try:
             self.vista3d_tasks_path.mkdir(parents=True, exist_ok=True)
-            self.vista3d_processed_path.mkdir(parents=True, exist_ok=True)
+            # Don't create processed path - service handles TasksHistory automatically
         except PermissionError:
             raise ValueError(f"Permission denied creating directories in: {self.tasks_base_path}")
     
@@ -177,16 +177,6 @@ class Vista3DMCPServer:
             
             return status
         
-        # Check if task failed
-        failed_folder = Path(self.tasks_base_path) / "Vista3D" / "failed"
-        failed_file = failed_folder / f"{task_id}.json"
-        
-        if failed_file.exists():
-            return {
-                "status": "failed",
-                "task_id": task_id,
-                "failed_file": str(failed_file)
-            }
         
         return {
             "status": "not_found",
