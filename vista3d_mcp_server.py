@@ -26,7 +26,7 @@ class Vista3DMCPServer:
             os.path.expanduser("~/tasks-live")
         )
         
-        self.vista3d_tasks_path = Path(self.tasks_base_path) / "Vista3D" / "tasks"
+        self.vista3d_tasks_path = Path("C:/ARTDaemon/Segman/dcm2nifti/Tasks/Vista3D")
         self.vista3d_processed_path = Path(self.tasks_base_path) / "Vista3D" / "processed"
         
         # Validate and create directories
