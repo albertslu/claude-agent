@@ -31,9 +31,14 @@ class RobustMCPClient:
         if not openai_api_key:
             config = Config()
             openai_api_key = config.get_openai_key()
+        else:
+            config = Config()
         
         if openai_api_key:
             self.openai_client = OpenAI(api_key=openai_api_key)
+            
+        # Load base paths from config
+        self.base_paths = config.get_base_paths()
         
     def start_server(self):
         """Start the MCP server process with robust error handling"""
@@ -179,26 +184,24 @@ class RobustMCPClient:
                 "parameters": tool.get("inputSchema", {}).get("properties", {})
             })
         
-        prompt = f"""You are a Vista3D medical imaging assistant. Parse this natural language command and convert it to a structured tool call.
+        
+        prompt = f"""You are a Vista3D medical imaging assistant with intelligent file discovery.
 
 Available tools:
 {json.dumps(tools_info, indent=2)}
 
 User command: "{command}"
 
-Return a JSON object with:
-- "tool_name": the name of the tool to call
-- "arguments": the arguments for the tool call
-- "explanation": brief explanation of what will be done
+Base path for patients: {self.base_paths['dcm2nifti_base']}
 
-If the command is unclear or missing required parameters, return:
-- "error": description of what's missing
-- "suggestions": list of what parameters are needed
+WORKFLOW: For patient commands, start the discovery process:
+1. If user mentions "patient XXXX", use list_available_images with search_directory: "{self.base_paths['dcm2nifti_base']}/XXXX/"
+2. The workflow will continue automatically after discovery
 
-Examples:
-- "segment liver from test.nii.gz" -> tool: submit_vista3d_point_task with estimated liver coordinates
-- "check status of task123" -> tool: check_vista3d_task_status with task_id: "task123"
-- "list available images" -> tool: list_available_images
+Return JSON with:
+- "tool_name": tool to call
+- "arguments": arguments with actual base path
+- "explanation": what will be done
 
 Respond only with valid JSON."""
 
@@ -210,7 +213,16 @@ Respond only with valid JSON."""
                 temperature=0.1
             )
             
-            result = json.loads(response.choices[0].message.content)
+            content = response.choices[0].message.content.strip()
+            print(f"🔍 OpenAI response: {content}")
+            
+            # Try to extract JSON from the response
+            if content.startswith("```json"):
+                content = content.split("```json")[1].split("```")[0].strip()
+            elif content.startswith("```"):
+                content = content.split("```")[1].split("```")[0].strip()
+            
+            result = json.loads(content)
             
             if "error" in result:
                 return {"error": result["error"], "suggestions": result.get("suggestions", [])}
@@ -225,9 +237,105 @@ Respond only with valid JSON."""
             # Call the tool
             tool_result = self.call_tool(tool_name, arguments)
             
+            # Check if OpenAI wants to continue with more tool calls
+            return self._continue_workflow_if_needed(command, tool_result)
+            
+        except Exception as e:
+            return {"error": f"Failed to process command: {str(e)}"}
+    
+    def _continue_workflow_if_needed(self, original_command: str, tool_result: Dict[str, Any]) -> Dict[str, Any]:
+        """Continue workflow if OpenAI determines more steps are needed"""
+        try:
+            # Ask OpenAI if the workflow is complete or if more steps are needed
+            result_content = tool_result.get("result", {}).get("content", [])
+            result_text = result_content[0].get("text", "") if result_content else ""
+            
+            # Get available tools for the continuation prompt
+            tools_response = self.list_tools()
+            tools = tools_response.get("result", {}).get("tools", [])
+            
+            tools_info = []
+            for tool in tools:
+                tools_info.append({
+                    "name": tool["name"],
+                    "description": tool["description"],
+                    "parameters": tool.get("inputSchema", {}).get("properties", {})
+                })
+            
+            continuation_prompt = f"""Original command: "{original_command}"
+
+Available tools:
+{json.dumps(tools_info, indent=2)}
+
+Last tool result: {result_text}
+
+IMPORTANT: Use the ACTUAL file paths from the result above. 
+- Find the MR series image.nii.gz file from the list
+- Convert Linux paths (/mnt/c/) to Windows paths (C:\\)
+- Use the real discovered paths, not placeholders
+
+Is the workflow complete? If not, what's the next tool to call with the actual discovered file paths?
+
+If complete, return: {{"workflow_complete": true, "explanation": "Task completed"}}
+If not complete, return: {{"tool_name": "actual_tool_name", "arguments": {{...with real paths...}}, "explanation": "Next step"}}
+
+Respond only with valid JSON."""
+
+            response = self.openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": continuation_prompt}],
+                max_tokens=1000,
+                temperature=0.1
+            )
+            
+            content = response.choices[0].message.content.strip()
+            print(f"🔍 OpenAI workflow check: {content}")
+            
+            # Parse the response
+            if content.startswith("```json"):
+                content = content.split("```json")[1].split("```")[0].strip()
+            elif content.startswith("```"):
+                content = content.split("```")[1].split("```")[0].strip()
+            
+            result = json.loads(content)
+            
+            # If workflow is complete, return the original result
+            if result.get("workflow_complete"):
+                return {
+                    "success": True,
+                    "explanation": result.get("explanation", "Workflow completed"),
+                    "tool_result": tool_result
+                }
+            
+            # If there's a next tool, execute it
+            if "tool_name" in result:
+                next_tool_name = result["tool_name"]
+                next_arguments = result["arguments"]
+                next_explanation = result.get("explanation", "")
+                
+                print(f"🤖 {next_explanation}")
+                
+                # Call the next tool
+                next_result = self.call_tool(next_tool_name, next_arguments)
+                
+                return {
+                    "success": True,
+                    "explanation": next_explanation,
+                    "tool_result": next_result
+                }
+            
+            # Default: return original result
             return {
                 "success": True,
-                "explanation": explanation,
+                "explanation": "Workflow completed",
+                "tool_result": tool_result
+            }
+            
+        except Exception as e:
+            # If continuation fails, return original result
+            return {
+                "success": True,
+                "explanation": "Tool executed successfully",
                 "tool_result": tool_result
             }
             
@@ -239,7 +347,7 @@ def main():
     if len(sys.argv) < 2:
         print("Usage:")
         print("  python3 robust_mcp_client.py <server_command> [args...]")
-        print("  OPENAI_API_KEY=your_key python3 robust_mcp_client.py python3 vista3d_mcp_server.py --tasks-path /path/to/tasks")
+        print("  OPENAI_API_KEY=your_key python3 robust_mcp_client.py python3 vista3d_mcp_server.py --tasks-path /home/lbert/tasks-live")
         sys.exit(1)
     
     server_command = sys.argv[1:]

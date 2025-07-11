@@ -12,7 +12,7 @@ from config import Config
 
 def test_mcp_client():
     """Test the MCP client functionality"""
-    server_command = ["python3", "vista3d_mcp_server.py", "--tasks-path", "/tmp/vista3d_tasks"]
+    server_command = ["python3", "vista3d_mcp_server.py", "--tasks-path", "/home/lbert/tasks-live"]
     
     # Use config system to get API key
     config = Config()

@@ -7,7 +7,7 @@ Handles API key storage and retrieval
 import os
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict
 
 class Config:
     def __init__(self):
@@ -16,22 +16,38 @@ class Config:
         self.config_dir.mkdir(exist_ok=True)
         
     def get_openai_key(self) -> Optional[str]:
-        """Get OpenAI API key from environment or config file"""
-        # First check environment variable
-        key = os.getenv("OPENAI_API_KEY")
-        if key:
-            return key
-            
-        # Then check config file
+        """Get OpenAI API key from config file or environment"""
+        # First check config file
         if self.config_file.exists():
             try:
                 with open(self.config_file, 'r') as f:
                     config = json.load(f)
-                    return config.get("openai_api_key")
+                    key = config.get("openai_api_key")
+                    if key:
+                        return key
             except:
                 pass
         
+        # Then check environment variable
+        key = os.getenv("OPENAI_API_KEY")
+        if key:
+            return key
+        
         return None
+    
+    def get_base_paths(self) -> Dict[str, str]:
+        """Get base paths from config file"""
+        if self.config_file.exists():
+            try:
+                with open(self.config_file, 'r') as f:
+                    config = json.load(f)
+                    base_paths = config.get("base_paths", {})
+                    if base_paths:
+                        return base_paths
+            except:
+                pass
+        
+        raise ValueError("No base_paths found in config file. Please run: python3 config.py set-paths")
     
     def set_openai_key(self, key: str):
         """Save OpenAI API key to config file"""

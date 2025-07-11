@@ -11,6 +11,7 @@ import sys
 import time
 import os
 import argparse
+import sqlite3
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 
@@ -18,12 +19,19 @@ from typing import Dict, List, Any, Optional
 class Vista3DMCPServer:
     """MCP Server for Vista3D task management."""
     
-    def __init__(self, tasks_base_path: Optional[str] = None):
+    def __init__(self, tasks_base_path: Optional[str] = None, db_path: Optional[str] = None):
         # Use provided path, environment variable, or default
         self.tasks_base_path = (
             tasks_base_path or 
             os.getenv("VISTA3D_TASKS_BASE_PATH") or 
             os.path.expanduser("~/tasks-live")
+        )
+        
+        # Database path configuration
+        self.db_path = (
+            db_path or
+            os.getenv("VISTA3D_DB_PATH") or
+            "/mnt/c/ARTDaemon/Segman/DataBase/plandb/RTPlanDB.sqlite"
         )
         
         self.vista3d_tasks_path = Path(self.tasks_base_path) / "Vista3D"
@@ -205,6 +213,103 @@ class Vista3DMCPServer:
         
         return image_paths
     
+    def query_patient_images(self, patient_id: Optional[str] = None, 
+                           patient_name: Optional[str] = None,
+                           series_instance_uid: Optional[str] = None,
+                           study_instance_uid: Optional[str] = None,
+                           modality: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Query SQLite database to find patient images based on various criteria"""
+        
+        if not Path(self.db_path).exists():
+            return [{"error": f"Database not found at {self.db_path}"}]
+        
+        try:
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row  # Enable column access by name
+            cursor = conn.cursor()
+            
+            # Build dynamic query based on provided parameters
+            query_parts = []
+            params = []
+            
+            base_query = """
+            SELECT DISTINCT 
+                patient_id,
+                patient_name, 
+                series_instance_uid,
+                study_instance_uid,
+                modality,
+                image_path,
+                study_date,
+                series_date,
+                sequence_name,
+                contrast_agent
+            FROM patient_images 
+            WHERE 1=1
+            """
+            
+            if patient_id:
+                query_parts.append("AND patient_id LIKE ?")
+                params.append(f"%{patient_id}%")
+                
+            if patient_name:
+                query_parts.append("AND patient_name LIKE ?")
+                params.append(f"%{patient_name}%")
+                
+            if series_instance_uid:
+                query_parts.append("AND series_instance_uid = ?")
+                params.append(series_instance_uid)
+                
+            if study_instance_uid:
+                query_parts.append("AND study_instance_uid = ?")
+                params.append(study_instance_uid)
+                
+            if modality:
+                query_parts.append("AND modality = ?")
+                params.append(modality)
+            
+            final_query = base_query + " ".join(query_parts) + " ORDER BY study_date DESC, series_date DESC"
+            
+            cursor.execute(final_query, params)
+            rows = cursor.fetchall()
+            
+            results = []
+            for row in rows:
+                # Convert Linux path to Windows if needed
+                image_path = row["image_path"]
+                if image_path and image_path.startswith("/mnt/c/"):
+                    windows_path = image_path.replace("/mnt/c/", "C:/").replace("/", "\\")
+                else:
+                    windows_path = image_path
+                
+                # Generate output directory path
+                if windows_path:
+                    output_dir = str(Path(windows_path).parent / "Vista3D") + "\\"
+                else:
+                    output_dir = None
+                
+                results.append({
+                    "patient_id": row["patient_id"],
+                    "patient_name": row["patient_name"],
+                    "series_instance_uid": row["series_instance_uid"],
+                    "study_instance_uid": row["study_instance_uid"],
+                    "modality": row["modality"],
+                    "input_file": windows_path,
+                    "output_directory": output_dir,
+                    "study_date": row["study_date"],
+                    "series_date": row["series_date"],
+                    "sequence_name": row["sequence_name"],
+                    "contrast_agent": row["contrast_agent"]
+                })
+            
+            conn.close()
+            return results
+            
+        except sqlite3.Error as e:
+            return [{"error": f"Database query failed: {str(e)}"}]
+        except Exception as e:
+            return [{"error": f"Unexpected error: {str(e)}"}]
+    
     def handle_mcp_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Handle MCP protocol requests."""
         method = request.get("method")
@@ -316,6 +421,36 @@ class Vista3DMCPServer:
                                     }
                                 },
                                 "required": ["input_file", "output_directory"]
+                            }
+                        },
+                        {
+                            "name": "query_patient_images",
+                            "description": "Query SQLite database to find patient images by patient ID, name, or other criteria",
+                            "inputSchema": {
+                                "type": "object",
+                                "properties": {
+                                    "patient_id": {
+                                        "type": "string",
+                                        "description": "Patient ID to search for (partial matches supported)"
+                                    },
+                                    "patient_name": {
+                                        "type": "string", 
+                                        "description": "Patient name to search for (partial matches supported)"
+                                    },
+                                    "series_instance_uid": {
+                                        "type": "string",
+                                        "description": "Series Instance UID for exact match"
+                                    },
+                                    "study_instance_uid": {
+                                        "type": "string",
+                                        "description": "Study Instance UID for exact match"
+                                    },
+                                    "modality": {
+                                        "type": "string",
+                                        "description": "Imaging modality (MR, CT, etc.)"
+                                    }
+                                },
+                                "required": []
                             }
                         },
                         {
@@ -452,6 +587,55 @@ class Vista3DMCPServer:
                                 {
                                     "type": "text",
                                     "text": f"Successfully submitted full body segmentation task!\n\nTask ID: {task['task_id']}\nTask file: {task_file_path}\nInput file: {input_file}\nOutput directory: {output_directory}\n\nTask is now queued for processing by ARTDaemon."
+                                }
+                            ]
+                        }
+                    }
+                
+                elif tool_name == "query_patient_images":
+                    # Extract query parameters
+                    patient_id = arguments.get("patient_id")
+                    patient_name = arguments.get("patient_name") 
+                    series_instance_uid = arguments.get("series_instance_uid")
+                    study_instance_uid = arguments.get("study_instance_uid")
+                    modality = arguments.get("modality")
+                    
+                    # Query the database
+                    results = self.query_patient_images(
+                        patient_id=patient_id,
+                        patient_name=patient_name,
+                        series_instance_uid=series_instance_uid,
+                        study_instance_uid=study_instance_uid,
+                        modality=modality
+                    )
+                    
+                    # Format results for display
+                    if results and "error" not in results[0]:
+                        results_text = f"Found {len(results)} patient image(s):\n"
+                        for i, result in enumerate(results, 1):
+                            results_text += f"\n{i}. Patient: {result.get('patient_id', 'N/A')} ({result.get('patient_name', 'N/A')})\n"
+                            results_text += f"   Modality: {result.get('modality', 'N/A')}\n"
+                            results_text += f"   Study Date: {result.get('study_date', 'N/A')}\n"
+                            results_text += f"   Input File: {result.get('input_file', 'N/A')}\n"
+                            results_text += f"   Output Directory: {result.get('output_directory', 'N/A')}\n"
+                            if result.get('sequence_name'):
+                                results_text += f"   Sequence: {result.get('sequence_name')}\n"
+                            if result.get('contrast_agent'):
+                                results_text += f"   Contrast: {result.get('contrast_agent')}\n"
+                    else:
+                        if results and "error" in results[0]:
+                            results_text = f"Database query error: {results[0]['error']}"
+                        else:
+                            results_text = "No patient images found matching the criteria."
+                    
+                    return {
+                        "jsonrpc": "2.0",
+                        "id": request.get("id"),
+                        "result": {
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": results_text
                                 }
                             ]
                         }

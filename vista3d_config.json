@@ -1,0 +1,37 @@
+{
+  "base_paths": {
+    "dcm2nifti_base": "/mnt/c/ARTDaemon/Segman/dcm2nifti",
+    "tasks_base": "/home/lbert/tasks-live",
+    "tasks_history": "/home/lbert/tasks-history"
+  },
+  "sequence_mappings": {
+    "t1c": {
+      "patterns": ["*tfl3d1*", "*t1*", "*MPRAGE*"],
+      "contrast_required": true,
+      "description": "T1 contrast-enhanced"
+    },
+    "t1": {
+      "patterns": ["*tfl3d1*", "*t1*", "*MPRAGE*"],
+      "contrast_required": false,
+      "description": "T1 weighted"
+    },
+    "t2": {
+      "patterns": ["*tse*", "*t2*", "*FLAIR*"],
+      "contrast_required": false,
+      "description": "T2 weighted"
+    },
+    "flair": {
+      "patterns": ["*FLAIR*", "*flair*"],
+      "contrast_required": false,
+      "description": "FLAIR sequence"
+    }
+  },
+  "path_mappings": {
+    "windows_to_linux": {
+      "C:/ARTDaemon/": "/mnt/c/ARTDaemon/"
+    },
+    "linux_to_windows": {
+      "/mnt/c/ARTDaemon/": "C:/ARTDaemon/"
+    }
+  }
+}
