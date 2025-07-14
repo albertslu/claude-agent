@@ -21,8 +21,14 @@ def main():
     # Get the natural language command
     command = " ".join(sys.argv[1:])
     
-    # Server configuration
-    server_command = ["python3", "vista3d_mcp_server.py", "--tasks-path", "/home/lbert/tasks-live"]
+    # Server configuration - get tasks path from config
+    config = Config()
+    base_paths = config.get_base_paths()
+    tasks_path = base_paths.get("tasks_base", os.path.expanduser("~/tasks-live"))
+    
+    # Use appropriate Python executable for the platform
+    python_exe = "python" if os.name == "nt" else "python3"
+    server_command = [python_exe, "vista3d_mcp_server.py", "--tasks-path", tasks_path]
     
     # Get API key from config
     config = Config()

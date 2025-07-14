@@ -47,7 +47,21 @@ class Config:
             except:
                 pass
         
-        raise ValueError("No base_paths found in config file. Please run: python3 config.py set-paths")
+        raise ValueError("No base_paths found in config file. Please run: python config.py set-paths")
+    
+    def get_database_path(self) -> str:
+        """Get database path from config file"""
+        if self.config_file.exists():
+            try:
+                with open(self.config_file, 'r') as f:
+                    config = json.load(f)
+                    db_path = config.get("database_path")
+                    if db_path:
+                        return db_path
+            except:
+                pass
+        
+        raise ValueError("No database_path found in config file. Please run: python config.py set-db-path")
     
     def set_openai_key(self, key: str):
         """Save OpenAI API key to config file"""
@@ -81,6 +95,36 @@ class Config:
                     json.dump(config, f, indent=2)
             except:
                 pass
+    
+    def set_database_path(self, path: str):
+        """Save database path to config file"""
+        config = {}
+        if self.config_file.exists():
+            try:
+                with open(self.config_file, 'r') as f:
+                    config = json.load(f)
+            except:
+                pass
+        
+        config["database_path"] = path
+        
+        with open(self.config_file, 'w') as f:
+            json.dump(config, f, indent=2)
+    
+    def set_base_paths(self, paths: Dict[str, str]):
+        """Save base paths to config file"""
+        config = {}
+        if self.config_file.exists():
+            try:
+                with open(self.config_file, 'r') as f:
+                    config = json.load(f)
+            except:
+                pass
+        
+        config["base_paths"] = paths
+        
+        with open(self.config_file, 'w') as f:
+            json.dump(config, f, indent=2)
 
 def main():
     """CLI for managing configuration"""
@@ -90,10 +134,13 @@ def main():
     
     if len(sys.argv) < 2:
         print("Usage:")
-        print("  python3 config.py set-key <your_openai_key>")
-        print("  python3 config.py get-key")
-        print("  python3 config.py clear-key")
-        print("  python3 config.py test-key")
+        print("  python config.py set-key <your_openai_key>")
+        print("  python config.py get-key")
+        print("  python config.py clear-key")
+        print("  python config.py test-key")
+        print("  python config.py set-db-path <path_to_database>")
+        print("  python config.py set-paths")
+        print("  python config.py show-config")
         sys.exit(1)
     
     command = sys.argv[1]
@@ -140,6 +187,43 @@ def main():
             print(f"📝 Response: {response.choices[0].message.content}")
         except Exception as e:
             print(f"❌ OpenAI API key test failed: {e}")
+    
+    elif command == "set-db-path":
+        if len(sys.argv) < 3:
+            print("Usage: python config.py set-db-path <path_to_database>")
+            sys.exit(1)
+        
+        db_path = sys.argv[2]
+        config.set_database_path(db_path)
+        print(f"✅ Database path saved: {db_path}")
+    
+    elif command == "set-paths":
+        print("Setting up base paths...")
+        print("Enter paths for your system:")
+        
+        dcm2nifti_base = input("DCM2NIFTI base path (e.g., C:\\ARTDaemon\\Segman\\dcm2nifti): ")
+        tasks_base = input("Tasks base path (e.g., C:\\ARTDaemon\\Segman\\Tasks): ")
+        tasks_history = input("Tasks history path (e.g., C:\\ARTDaemon\\Segman\\TasksHistory): ")
+        
+        paths = {
+            "dcm2nifti_base": dcm2nifti_base,
+            "tasks_base": tasks_base,
+            "tasks_history": tasks_history
+        }
+        
+        config.set_base_paths(paths)
+        print("✅ Base paths saved!")
+    
+    elif command == "show-config":
+        print("Current configuration:")
+        print(f"Config file: {config.config_file}")
+        
+        if config.config_file.exists():
+            with open(config.config_file, 'r') as f:
+                config_data = json.load(f)
+                print(json.dumps(config_data, indent=2))
+        else:
+            print("❌ Config file not found")
             
     else:
         print(f"❌ Unknown command: {command}")

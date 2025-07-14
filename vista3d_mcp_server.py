@@ -12,6 +12,7 @@ import time
 import os
 import argparse
 import sqlite3
+import re
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 
@@ -27,18 +28,66 @@ class Vista3DMCPServer:
             os.path.expanduser("~/tasks-live")
         )
         
-        # Database path configuration
-        self.db_path = (
-            db_path or
-            os.getenv("VISTA3D_DB_PATH") or
-            "/mnt/c/ARTDaemon/Segman/DataBase/plandb/RTPlanDB.sqlite"
-        )
+        # Database path configuration - get from config
+        if db_path:
+            self.db_path = db_path
+        elif os.getenv("VISTA3D_DB_PATH"):
+            self.db_path = os.getenv("VISTA3D_DB_PATH")
+        else:
+            # Get from config file
+            from config import Config
+            config = Config()
+            self.db_path = config.get_database_path()
         
         self.vista3d_tasks_path = Path(self.tasks_base_path) / "Vista3D"
         self.vista3d_processed_path = Path(self.tasks_base_path.replace("tasks-live", "tasks-history")) / "Vista3d"
         
         # Validate and create directories
         self._validate_and_create_directories()
+    
+    def _classify_mr_sequence(self, series_description: str) -> List[str]:
+        """
+        Classify MR sequence using sophisticated regex patterns from SegmanRepo.
+        Returns list of sequence types that match (e.g., ['T1', 'T1NC'])
+        """
+        if not series_description:
+            return []
+        
+        matches = []
+        desc = series_description.strip()
+        
+        # T1 general filter (includes both contrast and non-contrast)
+        t1_pattern = r"(^|[_\-\s])(?!.*FLAIR)[a-zA-Z0-9]*?(T1(W|WI)?|T1[-_ ]?weighted|T1W|MP[_\-\s]?RAGE|SPGR|FSPGR|FLASH|GRE|FFE|TFE|MP2RAGE|BRAVO|VIBE|LAVA|THRIVE|T1C|T1CE|mASTAR)([_\-\s]|$)"
+        if re.search(t1_pattern, desc, re.IGNORECASE):
+            matches.append("T1")
+        
+        # T1C (T1 with contrast)
+        t1c_pattern = r"(^|[\s_\-]).*?((POST|GAD|CONTRAST|CE|\+C).*?(T1W|T1(W|WI)?|T1[-_ ]?WEIGHTED|MP[\s_\-]?RAGE|SPGR|FSPGR|FLASH|GRE|FFE|TFE|MP2RAGE|BRAVO)|(T1W|T1(W|WI)?|T1[-_ ]?WEIGHTED|MP[\s_\-]?RAGE|SPGR|FSPGR|FLASH|GRE|FFE|TFE|MP2RAGE|BRAVO).*?(POST|GAD|CONTRAST|CE|\+C)|VIBE|LAVA|THRIVE|T1C|T1CE|MASTAR)([\s_\-]|$)"
+        if re.search(t1c_pattern, desc, re.IGNORECASE):
+            matches.append("T1C")
+        
+        # T1NC (T1 without contrast) - only if T1 matches but T1C doesn't
+        if "T1" in matches and "T1C" not in matches:
+            t1nc_pattern = r"^(?!.*(POST|GAD|CONTRAST|CE|\+C|VIBE|LAVA|THRIVE|T1C|T1CE|MASTAR)).*?([_\-\s]|^)[A-Z0-9]*?(T1(W|WI)?|T1[-_ ]?WEIGHTED|T1W|MP[\s_\-]?RAGE|SPGR|FSPGR|FLASH|GRE|FFE|TFE|MP2RAGE|BRAVO)([_\-\s]|$)"
+            if re.search(t1nc_pattern, desc, re.IGNORECASE):
+                matches.append("T1NC")
+        
+        # T2 filter
+        t2_pattern = r"^(?!.*(FLAIR|T1W|T1WI|T1[-_ ]?WEIGHTED|T1)).*?([_\-\s]|^)(T2(W|WI)?|T2[-_ ]?WEIGHTED|STIR|FSE|TSE|CISS|SPACE|VISTA|CUBE|PROP(?:ELLER)?|BLADE|FIESTA|TRUEFISP|BSSFP|DRIVE)([_\-\s]|$)"
+        if re.search(t2_pattern, desc, re.IGNORECASE):
+            matches.append("T2")
+        
+        # FLAIR filter
+        flair_pattern = r"^(?!.*(T1W|T1WI|T1[-_ ]?WEIGHTED|T1)).*?(FLAIR|T2[\s_\-]?FLAIR|FLAIR[\s_\-]?T2|IR[\s_\-]?(T2|FSE|TSE)?[\s_\-]?FLAIR|FLAIRV\d*|FLUID[\s_\-]?ATTENUATED)([\s_\-]|$)"
+        if re.search(flair_pattern, desc, re.IGNORECASE):
+            matches.append("FLAIR")
+        
+        # DWI filter
+        dwi_pattern = r"(^|[_\-\s])[a-zA-Z0-9]*?(DWI(_?EPI)?|EPI[_\- ]?DWI|Diffusion(_?Weighted)?|DTI(_\d+dir)?|ADC)([_\-\s]|$)"
+        if re.search(dwi_pattern, desc, re.IGNORECASE):
+            matches.append("DWI")
+        
+        return matches
     
     def _validate_and_create_directories(self):
         """Validate base path exists and create required directories."""
@@ -217,7 +266,10 @@ class Vista3DMCPServer:
                            patient_name: Optional[str] = None,
                            series_instance_uid: Optional[str] = None,
                            study_instance_uid: Optional[str] = None,
-                           modality: Optional[str] = None) -> List[Dict[str, Any]]:
+                           modality: Optional[str] = None,
+                           sequence_type: Optional[str] = None,
+                           date_from: Optional[str] = None,
+                           date_to: Optional[str] = None) -> List[Dict[str, Any]]:
         """Query SQLite database to find patient images based on various criteria"""
         
         if not Path(self.db_path).exists():
@@ -228,65 +280,90 @@ class Vista3DMCPServer:
             conn.row_factory = sqlite3.Row  # Enable column access by name
             cursor = conn.cursor()
             
+            # Determine which table to query based on modality
+            if modality == "MR":
+                table = "MR"
+            elif modality == "CT":
+                table = "CT" 
+            elif modality == "PT":
+                table = "PT"
+            else:
+                # Default to MR if no modality specified, or query both MR and CT
+                table = "MR"
+            
             # Build dynamic query based on provided parameters
             query_parts = []
             params = []
             
-            base_query = """
+            base_query = f"""
             SELECT DISTINCT 
-                patient_id,
-                patient_name, 
-                series_instance_uid,
-                study_instance_uid,
-                modality,
-                image_path,
-                study_date,
-                series_date,
-                sequence_name,
-                contrast_agent
-            FROM patient_images 
+                PatientID as patient_id,
+                PatientName as patient_name, 
+                SeriesInstanceUID as series_instance_uid,
+                StudyInstanceUID as study_instance_uid,
+                Modality as modality,
+                StudyDate as study_date,
+                SeriesDate as series_date,
+                SeriesDescription as series_description,
+                ProtocolName as protocol_name,
+                SequenceName as sequence_name,
+                SliceThickness as slice_thickness,
+                NumberOfSlices as number_of_slices
+            FROM {table} 
             WHERE 1=1
             """
             
             if patient_id:
-                query_parts.append("AND patient_id LIKE ?")
+                query_parts.append("AND PatientID LIKE ?")
                 params.append(f"%{patient_id}%")
                 
             if patient_name:
-                query_parts.append("AND patient_name LIKE ?")
+                query_parts.append("AND PatientName LIKE ?")
                 params.append(f"%{patient_name}%")
                 
             if series_instance_uid:
-                query_parts.append("AND series_instance_uid = ?")
+                query_parts.append("AND SeriesInstanceUID = ?")
                 params.append(series_instance_uid)
                 
             if study_instance_uid:
-                query_parts.append("AND study_instance_uid = ?")
+                query_parts.append("AND StudyInstanceUID = ?")
                 params.append(study_instance_uid)
                 
-            if modality:
-                query_parts.append("AND modality = ?")
-                params.append(modality)
+            # Add sequence type filtering for MR
+            if sequence_type and table == "MR":
+                if sequence_type.lower() == "t1":
+                    query_parts.append("AND (SeriesDescription LIKE ? OR ProtocolName LIKE ?)")
+                    params.extend(["%T1%", "%T1%"])
+                elif sequence_type.lower() == "t1_contrast":
+                    query_parts.append("AND (SeriesDescription LIKE ? OR ProtocolName LIKE ?) AND (SeriesDescription LIKE ? OR SeriesDescription LIKE ?)")
+                    params.extend(["%T1%", "%T1%", "%contrast%", "%Gd%"])
+                elif sequence_type.lower() == "t2":
+                    query_parts.append("AND (SeriesDescription LIKE ? OR ProtocolName LIKE ?)")
+                    params.extend(["%T2%", "%T2%"])
+                elif sequence_type.lower() == "flair":
+                    query_parts.append("AND (SeriesDescription LIKE ? OR ProtocolName LIKE ?)")
+                    params.extend(["%FLAIR%", "%FLAIR%"])
             
-            final_query = base_query + " ".join(query_parts) + " ORDER BY study_date DESC, series_date DESC"
+            # Add date filtering
+            if date_from:
+                query_parts.append("AND SeriesDate >= ?")
+                params.append(date_from)
+            if date_to:
+                query_parts.append("AND SeriesDate <= ?")
+                params.append(date_to)
+            
+            final_query = base_query + " ".join(query_parts) + " ORDER BY StudyDate DESC, SeriesDate DESC"
             
             cursor.execute(final_query, params)
             rows = cursor.fetchall()
             
             results = []
             for row in rows:
-                # Convert Linux path to Windows if needed
-                image_path = row["image_path"]
-                if image_path and image_path.startswith("/mnt/c/"):
-                    windows_path = image_path.replace("/mnt/c/", "C:/").replace("/", "\\")
-                else:
-                    windows_path = image_path
+                # Construct file path based on series UID (this may need adjustment based on actual file organization)
+                constructed_path = f"C:\\ARTDaemon\\Segman\\dcm2nifti\\{row['patient_id']}\\{row['series_instance_uid']}\\image.nii.gz"
                 
                 # Generate output directory path
-                if windows_path:
-                    output_dir = str(Path(windows_path).parent / "Vista3D") + "\\"
-                else:
-                    output_dir = None
+                output_dir = f"C:\\ARTDaemon\\Segman\\dcm2nifti\\{row['patient_id']}\\{row['series_instance_uid']}\\Vista3D\\"
                 
                 results.append({
                     "patient_id": row["patient_id"],
@@ -294,12 +371,15 @@ class Vista3DMCPServer:
                     "series_instance_uid": row["series_instance_uid"],
                     "study_instance_uid": row["study_instance_uid"],
                     "modality": row["modality"],
-                    "input_file": windows_path,
+                    "input_file": constructed_path,
                     "output_directory": output_dir,
                     "study_date": row["study_date"],
                     "series_date": row["series_date"],
+                    "series_description": row["series_description"],
+                    "protocol_name": row["protocol_name"],
                     "sequence_name": row["sequence_name"],
-                    "contrast_agent": row["contrast_agent"]
+                    "slice_thickness": row["slice_thickness"],
+                    "number_of_slices": row["number_of_slices"]
                 })
             
             conn.close()
@@ -448,6 +528,10 @@ class Vista3DMCPServer:
                                     "modality": {
                                         "type": "string",
                                         "description": "Imaging modality (MR, CT, etc.)"
+                                    },
+                                    "sequence_type": {
+                                        "type": "string",
+                                        "description": "MR sequence type (T1, T1C, T1NC, T2, FLAIR, DWI, etc.)"
                                     }
                                 },
                                 "required": []
@@ -599,6 +683,7 @@ class Vista3DMCPServer:
                     series_instance_uid = arguments.get("series_instance_uid")
                     study_instance_uid = arguments.get("study_instance_uid")
                     modality = arguments.get("modality")
+                    sequence_type = arguments.get("sequence_type")
                     
                     # Query the database
                     results = self.query_patient_images(
@@ -606,7 +691,8 @@ class Vista3DMCPServer:
                         patient_name=patient_name,
                         series_instance_uid=series_instance_uid,
                         study_instance_uid=study_instance_uid,
-                        modality=modality
+                        modality=modality,
+                        sequence_type=sequence_type
                     )
                     
                     # Format results for display

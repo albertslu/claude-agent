@@ -1,0 +1,314 @@
+{
+  "database_info": {
+    "name": "RTPlanDB",
+    "path": "/mnt/c/ARTDaemon/Segman/Imports/Dcm/GK-Hippo/DataBase/plandb/RTPlanDB.sqlite",
+    "description": "Radiotherapy Treatment Planning Database containing medical imaging and treatment data",
+    "total_patients": 390,
+    "purpose": "Store metadata for DICOM images, treatment plans, and patient information for Gamma Knife treatments"
+  },
+  
+  "tables": {
+    "PATIENT": {
+      "description": "Patient demographic and identification information",
+      "row_count": 390,
+      "primary_key": "PatientID",
+      "key_columns": {
+        "PatientID": {
+          "type": "TEXT",
+          "description": "Unique patient identifier (e.g., 'GammaKnife-Hippocampal-001-VS')",
+          "example": "GammaKnife-Hippocampal-001-VS",
+          "searchable": true
+        },
+        "PatientName": {
+          "type": "TEXT", 
+          "description": "Patient name (often same as PatientID for anonymized data)",
+          "example": "GammaKnife-Hippocampal-001-VS",
+          "searchable": true
+        },
+        "PatientSex": {
+          "type": "TEXT",
+          "description": "Patient gender (M/F)",
+          "example": "F",
+          "searchable": true
+        }
+      },
+      "use_cases": [
+        "Find all patients by name pattern",
+        "Search patients by gender",
+        "Get patient demographics"
+      ]
+    },
+
+    "STUDY": {
+      "description": "Medical imaging studies for each patient",
+      "row_count": 1509,
+      "primary_key": "StudyInstanceUID",
+      "key_columns": {
+        "StudyInstanceUID": {
+          "type": "TEXT",
+          "description": "Unique DICOM study identifier",
+          "example": "1.3.6.1.4.1.14519.5.2.1.33675530409588400031384324...",
+          "searchable": true
+        },
+        "PatientID": {
+          "type": "TEXT",
+          "description": "Links to PATIENT table",
+          "example": "GammaKnife-Hippocampal-001-VS",
+          "foreign_key": "PATIENT.PatientID"
+        },
+        "StudyDate": {
+          "type": "TEXT",
+          "description": "Study date in YYYYMMDD format",
+          "example": "20080608",
+          "searchable": true,
+          "date_format": "YYYYMMDD"
+        },
+        "StudyDescription": {
+          "type": "TEXT",
+          "description": "Description of the imaging study",
+          "example": "Follow-up Imaging Set 3",
+          "searchable": true
+        }
+      },
+      "use_cases": [
+        "Find studies by date range",
+        "Search studies by description",
+        "Get all studies for a patient"
+      ]
+    },
+
+    "MR": {
+      "description": "MRI series metadata - primary table for MR image segmentation",
+      "row_count": 3868,
+      "primary_key": "SeriesInstanceUID",
+      "key_columns": {
+        "SeriesInstanceUID": {
+          "type": "TEXT",
+          "description": "Unique DICOM series identifier",
+          "example": "1.3.6.1.4.1.14519.5.2.1.12235678466658573023964095...",
+          "searchable": true
+        },
+        "PatientID": {
+          "type": "TEXT",
+          "description": "Links to PATIENT table",
+          "example": "GammaKnife-Hippocampal-001-VS",
+          "foreign_key": "PATIENT.PatientID"
+        },
+        "StudyInstanceUID": {
+          "type": "TEXT",
+          "description": "Links to STUDY table",
+          "example": "1.3.6.1.4.1.14519.5.2.1.89745372461592463173454782...",
+          "foreign_key": "STUDY.StudyInstanceUID"
+        },
+        "Modality": {
+          "type": "TEXT",
+          "description": "Imaging modality (always 'MR' in this table)",
+          "example": "MR",
+          "fixed_value": "MR"
+        },
+        "SeriesDate": {
+          "type": "TEXT",
+          "description": "Series acquisition date in YYYYMMDD format",
+          "example": "20061121",
+          "searchable": true,
+          "date_format": "YYYYMMDD"
+        },
+        "SeriesDescription": {
+          "type": "TEXT",
+          "description": "Description of MR sequence/protocol",
+          "example": "T1 AXI non fat satTHRU ROI Co-registered to CT",
+          "searchable": true,
+          "sequence_info": true
+        },
+        "SequenceName": {
+          "type": "TEXT",
+          "description": "MR pulse sequence name",
+          "example": "",
+          "sequence_info": true
+        },
+        "ProtocolName": {
+          "type": "TEXT",
+          "description": "Imaging protocol name",
+          "example": "T1 AXI non fat satTHRU ROI",
+          "sequence_info": true
+        },
+        "SliceThickness": {
+          "type": "TEXT",
+          "description": "Slice thickness in mm",
+          "example": "1",
+          "technical_param": true
+        },
+        "NumberOfSlices": {
+          "type": "TEXT",
+          "description": "Number of image slices",
+          "example": "229",
+          "technical_param": true
+        }
+      },
+      "sequence_identification": {
+        "T1": {
+          "patterns": ["T1", "t1"],
+          "common_descriptions": ["T1 AXI", "T1 weighted"]
+        },
+        "T1_contrast": {
+          "patterns": ["T1", "contrast", "Gd", "gadolinium"],
+          "common_descriptions": ["T1 post contrast", "T1+C"]
+        },
+        "T2": {
+          "patterns": ["T2", "t2"],
+          "common_descriptions": ["T2 weighted", "T2 AXI"]
+        },
+        "FLAIR": {
+          "patterns": ["FLAIR", "flair"],
+          "common_descriptions": ["FLAIR", "Fluid Attenuated"]
+        }
+      },
+      "use_cases": [
+        "Find MR images by sequence type (T1, T2, FLAIR)",
+        "Search by acquisition date",
+        "Find specific protocols",
+        "Filter by slice parameters"
+      ]
+    },
+
+    "CT": {
+      "description": "CT series metadata",
+      "row_count": 390,
+      "primary_key": "SeriesInstanceUID",
+      "key_columns": {
+        "SeriesInstanceUID": {
+          "type": "TEXT",
+          "description": "Unique DICOM series identifier",
+          "searchable": true
+        },
+        "PatientID": {
+          "type": "TEXT",
+          "description": "Links to PATIENT table",
+          "foreign_key": "PATIENT.PatientID"
+        },
+        "Modality": {
+          "type": "TEXT",
+          "description": "Imaging modality (always 'CT' in this table)",
+          "example": "CT",
+          "fixed_value": "CT"
+        },
+        "SeriesDescription": {
+          "type": "TEXT",
+          "description": "CT series description",
+          "example": "1 MM H21s",
+          "searchable": true
+        }
+      },
+      "use_cases": [
+        "Find CT images for treatment planning",
+        "Search by series description"
+      ]
+    }
+  },
+
+  "natural_language_queries": {
+    "examples": [
+      {
+        "input": "Find all MR T1 images for patient GammaKnife-Hippocampal-001",
+        "sql_translation": "SELECT * FROM MR WHERE PatientID LIKE '%GammaKnife-Hippocampal-001%' AND (SeriesDescription LIKE '%T1%' OR ProtocolName LIKE '%T1%')",
+        "mcp_tool_call": {
+          "tool_name": "query_patient_images",
+          "arguments": {
+            "patient_id": "GammaKnife-Hippocampal-001",
+            "modality": "MR",
+            "sequence_type": "T1"
+          }
+        }
+      },
+      {
+        "input": "Get MR images from June 2008 studies",
+        "sql_translation": "SELECT * FROM MR WHERE SeriesDate LIKE '200806%'",
+        "mcp_tool_call": {
+          "tool_name": "query_patient_images", 
+          "arguments": {
+            "modality": "MR",
+            "date_filter": "200806"
+          }
+        }
+      },
+      {
+        "input": "Find FLAIR sequences for brain imaging",
+        "sql_translation": "SELECT * FROM MR WHERE SeriesDescription LIKE '%FLAIR%' OR ProtocolName LIKE '%FLAIR%'",
+        "mcp_tool_call": {
+          "tool_name": "query_patient_images",
+          "arguments": {
+            "modality": "MR", 
+            "sequence_type": "FLAIR"
+          }
+        }
+      }
+    ]
+  },
+
+  "mcp_integration": {
+    "recommended_tool_schema": {
+      "tool_name": "query_rtplan_database",
+      "description": "Query the RTPlanDB database for patient imaging data",
+      "parameters": {
+        "patient_id": {
+          "type": "string",
+          "description": "Patient ID (supports partial matching)"
+        },
+        "patient_name": {
+          "type": "string", 
+          "description": "Patient name (supports partial matching)"
+        },
+        "modality": {
+          "type": "string",
+          "enum": ["MR", "CT", "PT"],
+          "description": "Imaging modality"
+        },
+        "sequence_type": {
+          "type": "string",
+          "enum": ["T1", "T1_contrast", "T2", "FLAIR"],
+          "description": "MR sequence type (for MR modality)"
+        },
+        "date_from": {
+          "type": "string",
+          "description": "Start date in YYYYMMDD format"
+        },
+        "date_to": {
+          "type": "string", 
+          "description": "End date in YYYYMMDD format"
+        },
+        "series_description": {
+          "type": "string",
+          "description": "Series description text search"
+        }
+      }
+    },
+    
+    "sequence_detection_logic": {
+      "T1": "SeriesDescription LIKE '%T1%' OR ProtocolName LIKE '%T1%'",
+      "T1_contrast": "(SeriesDescription LIKE '%T1%' OR ProtocolName LIKE '%T1%') AND (SeriesDescription LIKE '%contrast%' OR SeriesDescription LIKE '%Gd%' OR SeriesDescription LIKE '%gadolinium%')",
+      "T2": "SeriesDescription LIKE '%T2%' OR ProtocolName LIKE '%T2%'", 
+      "FLAIR": "SeriesDescription LIKE '%FLAIR%' OR ProtocolName LIKE '%FLAIR%'"
+    }
+  },
+
+  "file_path_resolution": {
+    "note": "This database contains metadata only, not file paths",
+    "resolution_strategy": "File paths need to be constructed based on SeriesInstanceUID and standard DICOM file organization",
+    "suggested_mapping": {
+      "pattern": "C:/ARTDaemon/Segman/dcm2nifti/{PatientID}/{SeriesInstanceUID}/image.nii.gz",
+      "example": "C:/ARTDaemon/Segman/dcm2nifti/GammaKnife-Hippocampal-001-VS/1.3.6.1.4.1.14519.5.2.1.12235678466658573023964095/image.nii.gz"
+    },
+    "verification_needed": "Check if this path pattern matches actual file organization"
+  },
+
+  "recommended_updates": {
+    "database_path_in_config": "/mnt/c/ARTDaemon/Segman/Imports/Dcm/GK-Hippo/DataBase/plandb/RTPlanDB.sqlite",
+    "mcp_server_updates": [
+      "Update database path to point to this RTPlanDB.sqlite",
+      "Modify query_patient_images to use MR/CT tables instead of assumed schema",
+      "Add sequence type detection logic",
+      "Implement file path construction from SeriesInstanceUID",
+      "Add date range filtering capabilities"
+    ]
+  }
+}
