@@ -13,6 +13,7 @@ import os
 import argparse
 import sqlite3
 import re
+import logging
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 
@@ -21,6 +22,9 @@ class Vista3DMCPServer:
     """MCP Server for Vista3D task management."""
     
     def __init__(self, tasks_base_path: Optional[str] = None, db_path: Optional[str] = None):
+        # Set up logging
+        self._setup_logging()
+        
         # Use provided path, environment variable, or default
         self.tasks_base_path = (
             tasks_base_path or 
@@ -44,6 +48,28 @@ class Vista3DMCPServer:
         
         # Validate and create directories
         self._validate_and_create_directories()
+        
+        self.logger.info(f"Vista3D MCP Server initialized:")
+        self.logger.info(f"  Tasks base path: {self.tasks_base_path}")
+        self.logger.info(f"  Database path: {self.db_path}")
+    
+    def _setup_logging(self):
+        """Set up logging for debugging MCP server operations."""
+        # Create logger
+        self.logger = logging.getLogger('Vista3DMCPServer')
+        self.logger.setLevel(logging.DEBUG)
+        
+        # Create console handler that writes to stderr (so it doesn't interfere with stdout MCP communication)
+        handler = logging.StreamHandler(sys.stderr)
+        handler.setLevel(logging.DEBUG)
+        
+        # Create formatter
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        
+        # Add handler to logger
+        if not self.logger.handlers:
+            self.logger.addHandler(handler)
     
     def _classify_mr_sequence(self, series_description: str) -> List[str]:
         """
@@ -329,20 +355,8 @@ class Vista3DMCPServer:
                 query_parts.append("AND StudyInstanceUID = ?")
                 params.append(study_instance_uid)
                 
-            # Add sequence type filtering for MR
-            if sequence_type and table == "MR":
-                if sequence_type.lower() == "t1":
-                    query_parts.append("AND (SeriesDescription LIKE ? OR ProtocolName LIKE ?)")
-                    params.extend(["%T1%", "%T1%"])
-                elif sequence_type.lower() == "t1_contrast":
-                    query_parts.append("AND (SeriesDescription LIKE ? OR ProtocolName LIKE ?) AND (SeriesDescription LIKE ? OR SeriesDescription LIKE ?)")
-                    params.extend(["%T1%", "%T1%", "%contrast%", "%Gd%"])
-                elif sequence_type.lower() == "t2":
-                    query_parts.append("AND (SeriesDescription LIKE ? OR ProtocolName LIKE ?)")
-                    params.extend(["%T2%", "%T2%"])
-                elif sequence_type.lower() == "flair":
-                    query_parts.append("AND (SeriesDescription LIKE ? OR ProtocolName LIKE ?)")
-                    params.extend(["%FLAIR%", "%FLAIR%"])
+            # Store sequence type for post-processing with sophisticated regex patterns
+            requested_sequence_type = sequence_type
             
             # Add date filtering
             if date_from:
@@ -354,11 +368,41 @@ class Vista3DMCPServer:
             
             final_query = base_query + " ".join(query_parts) + " ORDER BY StudyDate DESC, SeriesDate DESC"
             
+            self.logger.debug(f"🗃️ SQL Query: {final_query}")
+            self.logger.debug(f"🗃️ SQL Parameters: {params}")
+            
             cursor.execute(final_query, params)
             rows = cursor.fetchall()
             
+            self.logger.info(f"📋 Raw SQL Results: {len(rows)} rows from database")
+            
             results = []
             for row in rows:
+                # Apply sophisticated sequence filtering for MR images
+                if requested_sequence_type and table == "MR":
+                    series_desc = row["series_description"] or ""
+                    classified_sequences = self._classify_mr_sequence(series_desc)
+                    
+                    # Check if the requested sequence type matches any classified types
+                    requested_type = requested_sequence_type.upper()
+                    
+                    # Log the classification for debugging
+                    self.logger.debug(f"🧬 Sequence Classification: '{series_desc}' -> {classified_sequences}")
+                    
+                    if requested_type not in classified_sequences:
+                        # Special case handling for common aliases
+                        if requested_type == "T1_CONTRAST" and "T1C" not in classified_sequences:
+                            self.logger.debug(f"❌ Filtered out: {requested_type} not in {classified_sequences}")
+                            continue
+                        elif requested_type == "T1_NO_CONTRAST" and "T1NC" not in classified_sequences:
+                            self.logger.debug(f"❌ Filtered out: {requested_type} not in {classified_sequences}")
+                            continue
+                        elif requested_type not in classified_sequences:
+                            self.logger.debug(f"❌ Filtered out: {requested_type} not in {classified_sequences}")
+                            continue
+                    
+                    self.logger.debug(f"✅ Matched: {requested_type} in {classified_sequences}")
+                
                 # Construct file path based on series UID (this may need adjustment based on actual file organization)
                 constructed_path = f"C:\\ARTDaemon\\Segman\\dcm2nifti\\{row['patient_id']}\\{row['series_instance_uid']}\\image.nii.gz"
                 
@@ -379,10 +423,18 @@ class Vista3DMCPServer:
                     "protocol_name": row["protocol_name"],
                     "sequence_name": row["sequence_name"],
                     "slice_thickness": row["slice_thickness"],
-                    "number_of_slices": row["number_of_slices"]
+                    "number_of_slices": row["number_of_slices"],
+                    "classified_sequences": classified_sequences  # Add classification info for debugging
                 })
             
             conn.close()
+            
+            if requested_sequence_type and table == "MR":
+                self.logger.info(f"🎯 Sequence Filtering Summary:")
+                self.logger.info(f"  Requested sequence type: {requested_sequence_type}")
+                self.logger.info(f"  Raw database results: {len(rows)} rows")
+                self.logger.info(f"  After sophisticated filtering: {len(results)} results")
+            
             return results
             
         except sqlite3.Error as e:
@@ -393,8 +445,12 @@ class Vista3DMCPServer:
     def handle_mcp_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Handle MCP protocol requests."""
         method = request.get("method")
+        request_id = request.get("id")
+        
+        self.logger.debug(f"🔵 MCP Request: {method} (ID: {request_id})")
         
         if method == "tools/list":
+            self.logger.debug("📋 Returning list of available tools")
             return {
                 "jsonrpc": "2.0",
                 "id": request.get("id"),
@@ -558,6 +614,9 @@ class Vista3DMCPServer:
             tool_name = request.get("params", {}).get("name")
             arguments = request.get("params", {}).get("arguments", {})
             
+            self.logger.info(f"🔧 Tool Call: {tool_name}")
+            self.logger.info(f"📝 Arguments: {json.dumps(arguments, indent=2)}")
+            
             try:
                 if tool_name == "submit_vista3d_point_task":
                     # Extract required parameters
@@ -685,6 +744,14 @@ class Vista3DMCPServer:
                     modality = arguments.get("modality")
                     sequence_type = arguments.get("sequence_type")
                     
+                    self.logger.info(f"🔍 Database Query Parameters:")
+                    self.logger.info(f"  patient_id: {patient_id}")
+                    self.logger.info(f"  patient_name: {patient_name}")
+                    self.logger.info(f"  modality: {modality}")
+                    self.logger.info(f"  sequence_type: {sequence_type}")
+                    self.logger.info(f"  series_instance_uid: {series_instance_uid}")
+                    self.logger.info(f"  study_instance_uid: {study_instance_uid}")
+                    
                     # Query the database
                     results = self.query_patient_images(
                         patient_id=patient_id,
@@ -694,6 +761,8 @@ class Vista3DMCPServer:
                         modality=modality,
                         sequence_type=sequence_type
                     )
+                    
+                    self.logger.info(f"📊 Query Results: Found {len(results)} images")
                     
                     # Format results for display
                     if results and "error" not in results[0]:
@@ -759,6 +828,7 @@ class Vista3DMCPServer:
                     }
             
             except Exception as e:
+                self.logger.error(f"❌ Tool Call Error: {tool_name} failed with: {str(e)}")
                 return {
                     "jsonrpc": "2.0",
                     "id": request.get("id"),
@@ -769,6 +839,7 @@ class Vista3DMCPServer:
                 }
         
         elif method == "initialize":
+            self.logger.info("🚀 MCP Server Initialize")
             return {
                 "jsonrpc": "2.0",
                 "id": request.get("id"),
