@@ -288,6 +288,7 @@ class Vista3DMCPServer:
         
         return image_paths
     
+
     def query_patient_images(self, patient_id: Optional[str] = None, 
                            patient_name: Optional[str] = None,
                            series_instance_uid: Optional[str] = None,
@@ -296,7 +297,7 @@ class Vista3DMCPServer:
                            sequence_type: Optional[str] = None,
                            date_from: Optional[str] = None,
                            date_to: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Query SQLite database to find patient images based on various criteria"""
+        """Query SQLite database to find patient images based on actual database schema"""
         
         if not Path(self.db_path).exists():
             return [{"error": f"Database not found at {self.db_path}"}]
@@ -314,8 +315,52 @@ class Vista3DMCPServer:
             elif modality == "PT":
                 table = "PT"
             else:
-                # Default to MR if no modality specified, or query both MR and CT
+                # Default to MR if no modality specified
                 table = "MR"
+            
+            # Load schema from JSON file
+            schema_path = Path(__file__).parent / "rtplandb_schema.json"
+            try:
+                with open(schema_path, 'r') as f:
+                    schema = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError) as e:
+                return [{"error": f"Could not load schema: {e}"}]
+            
+            # Get columns from schema for the specific table
+            if table not in schema.get("tables", {}):
+                return [{"error": f"Table {table} not found in schema"}]
+            
+            table_columns = list(schema["tables"][table]["columns"].keys())
+            self.logger.info(f"📋 Using table {table} with {len(table_columns)} columns from schema")
+            
+            # Build column list for SELECT statement with proper aliases
+            # Map schema columns to expected aliases for backward compatibility
+            column_mapping = {
+                'PatientID': 'patient_id',
+                'PatientName': 'patient_name',
+                'SeriesInstanceUID': 'series_instance_uid', 
+                'StudyInstanceUID': 'study_instance_uid',
+                'Modality': 'modality',
+                'StudyDate': 'study_date',
+                'SeriesDate': 'series_date',
+                'SeriesDescription': 'series_description',
+                'ProtocolName': 'protocol_name',
+                'SequenceName': 'sequence_name',
+                'SliceThickness': 'slice_thickness',
+                'NumberOfSlices': 'number_of_slices'
+            }
+            
+            select_columns = []
+            for col in table_columns:
+                if col in column_mapping:
+                    # Use predefined alias for known columns
+                    select_columns.append(f"{col} as {column_mapping[col]}")
+                else:
+                    # Use snake_case alias for other columns
+                    alias = col.lower().replace(' ', '_')
+                    select_columns.append(f"{col} as {alias}")
+            
+            self.logger.debug(f"🔍 Selected {len(select_columns)} columns with proper aliases")
             
             # Build dynamic query based on provided parameters
             query_parts = []
@@ -323,18 +368,7 @@ class Vista3DMCPServer:
             
             base_query = f"""
             SELECT DISTINCT 
-                PatientID as patient_id,
-                PatientName as patient_name, 
-                SeriesInstanceUID as series_instance_uid,
-                StudyInstanceUID as study_instance_uid,
-                Modality as modality,
-                StudyDate as study_date,
-                SeriesDate as series_date,
-                SeriesDescription as series_description,
-                ProtocolName as protocol_name,
-                SequenceName as sequence_name,
-                SliceThickness as slice_thickness,
-                NumberOfSlices as number_of_slices
+                {', '.join(select_columns)}
             FROM {table} 
             WHERE 1=1
             """
@@ -378,9 +412,18 @@ class Vista3DMCPServer:
             
             results = []
             for row in rows:
+                # Initialize classification info
+                classified_sequences = []
+                
                 # Apply sophisticated sequence filtering for MR images
                 if requested_sequence_type and table == "MR":
-                    series_desc = row["series_description"] or ""
+                    # Get series description safely from row
+                    series_desc = ""
+                    for key in row.keys():
+                        if key.lower() == "series_description":
+                            series_desc = row[key] or ""
+                            break
+                    
                     classified_sequences = self._classify_mr_sequence(series_desc)
                     
                     # Check if the requested sequence type matches any classified types
@@ -403,29 +446,34 @@ class Vista3DMCPServer:
                     
                     self.logger.debug(f"✅ Matched: {requested_type} in {classified_sequences}")
                 
-                # Construct file path based on series UID (this may need adjustment based on actual file organization)
-                constructed_path = f"C:\\ARTDaemon\\Segman\\dcm2nifti\\{row['patient_id']}\\{row['series_instance_uid']}\\image.nii.gz"
+                # Build result dictionary completely from schema - no hardcoded fields
+                result = {}
                 
-                # Generate output directory path
-                output_dir = f"C:\\ARTDaemon\\Segman\\dcm2nifti\\{row['patient_id']}\\{row['series_instance_uid']}\\Vista3D\\"
+                # Add all available columns from the row
+                for key in row.keys():
+                    result[key] = row[key]
                 
-                results.append({
-                    "patient_id": row["patient_id"],
-                    "patient_name": row["patient_name"],
-                    "series_instance_uid": row["series_instance_uid"],
-                    "study_instance_uid": row["study_instance_uid"],
-                    "modality": row["modality"],
-                    "input_file": constructed_path,
-                    "output_directory": output_dir,
-                    "study_date": row["study_date"],
-                    "series_date": row["series_date"],
-                    "series_description": row["series_description"],
-                    "protocol_name": row["protocol_name"],
-                    "sequence_name": row["sequence_name"],
-                    "slice_thickness": row["slice_thickness"],
-                    "number_of_slices": row["number_of_slices"],
-                    "classified_sequences": classified_sequences  # Add classification info for debugging
-                })
+                # Add computed fields
+                patient_id_val = ""
+                series_instance_uid_val = ""
+                
+                # Find patient_id and series_instance_uid safely
+                for key in row.keys():
+                    if key.lower() == "patient_id":
+                        patient_id_val = row[key] or ""
+                    elif key.lower() == "series_instance_uid":
+                        series_instance_uid_val = row[key] or ""
+                
+                # Add constructed paths
+                if patient_id_val and series_instance_uid_val:
+                    result["input_file"] = f"C:\\ARTDaemon\\Segman\\dcm2nifti\\{patient_id_val}\\{series_instance_uid_val}\\image.nii.gz"
+                    result["output_directory"] = f"C:\\ARTDaemon\\Segman\\dcm2nifti\\{patient_id_val}\\{series_instance_uid_val}\\Vista3D\\"
+                
+                # Add classification info for MR sequences
+                if table == "MR":
+                    result["classified_sequences"] = classified_sequences
+                
+                results.append(result)
             
             conn.close()
             

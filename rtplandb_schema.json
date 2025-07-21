@@ -2,313 +2,3518 @@
   "database_info": {
     "name": "RTPlanDB",
     "path": "/mnt/c/ARTDaemon/Segman/Imports/Dcm/GK-Hippo/DataBase/plandb/RTPlanDB.sqlite",
-    "description": "Radiotherapy Treatment Planning Database containing medical imaging and treatment data",
-    "total_patients": 390,
-    "purpose": "Store metadata for DICOM images, treatment plans, and patient information for Gamma Knife treatments"
+    "analyzed_on": "2025-07-21T12:38:44.879905",
+    "total_tables": 11
   },
-  
   "tables": {
-    "PATIENT": {
-      "description": "Patient demographic and identification information",
-      "row_count": 390,
-      "primary_key": "PatientID",
-      "key_columns": {
+    "COURSE": {
+      "row_count": 495,
+      "columns": {
+        "CourseUID": {
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": true,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-001-VS.1",
+            "GammaKnife-Hippocampal-001-VS.2",
+            "GammaKnife-Hippocampal-001-VS.3"
+          ]
+        },
         "PatientID": {
           "type": "TEXT",
-          "description": "Unique patient identifier (e.g., 'GammaKnife-Hippocampal-001-VS')",
-          "example": "GammaKnife-Hippocampal-001-VS",
-          "searchable": true
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS"
+          ]
+        },
+        "CourseNumber": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1",
+            "2",
+            "3"
+          ]
+        },
+        "FirstStudyDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20061121",
+            "20070528",
+            "20071210"
+          ]
+        },
+        "LastStudyDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20061121",
+            "20070528",
+            "20071210"
+          ]
+        },
+        "StudyDates": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20061121",
+            "20070528",
+            "20071210"
+          ]
+        },
+        "DBCreationUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBCreationTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142201",
+            "20240314T142202",
+            "20240314T142202"
+          ]
+        },
+        "DBUpdateUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBUpdateTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142201",
+            "20240314T142202",
+            "20240314T142202"
+          ]
+        },
+        "DBLastAccessUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBLastAccessTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142201",
+            "20240314T142202",
+            "20240314T142202"
+          ]
+        },
+        "Tasks": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Notes": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Comments": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Status": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        }
+      },
+      "foreign_keys": [],
+      "indexes": []
+    },
+    "CT": {
+      "row_count": 390,
+      "columns": {
+        "SeriesInstanceUID": {
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": true,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.295186214308620653599429047603581571314",
+            "1.3.6.1.4.1.14519.5.2.1.133093787375603428932850066260902799262",
+            "1.3.6.1.4.1.14519.5.2.1.35219399222490061467257169847803183492"
+          ]
+        },
+        "PatientID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-002-M",
+            "GammaKnife-Hippocampal-006-TGN"
+          ]
         },
         "PatientName": {
-          "type": "TEXT", 
-          "description": "Patient name (often same as PatientID for anonymized data)",
-          "example": "GammaKnife-Hippocampal-001-VS",
-          "searchable": true
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-002-M",
+            "GammaKnife-Hippocampal-006-TGN"
+          ]
+        },
+        "PatientBirthDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
         },
         "PatientSex": {
           "type": "TEXT",
-          "description": "Patient gender (M/F)",
-          "example": "F",
-          "searchable": true
-        }
-      },
-      "use_cases": [
-        "Find all patients by name pattern",
-        "Search patients by gender",
-        "Get patient demographics"
-      ]
-    },
-
-    "STUDY": {
-      "description": "Medical imaging studies for each patient",
-      "row_count": 1509,
-      "primary_key": "StudyInstanceUID",
-      "key_columns": {
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "F",
+            "M",
+            "M"
+          ]
+        },
         "StudyInstanceUID": {
           "type": "TEXT",
-          "description": "Unique DICOM study identifier",
-          "example": "1.3.6.1.4.1.14519.5.2.1.33675530409588400031384324...",
-          "searchable": true
-        },
-        "PatientID": {
-          "type": "TEXT",
-          "description": "Links to PATIENT table",
-          "example": "GammaKnife-Hippocampal-001-VS",
-          "foreign_key": "PATIENT.PatientID"
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.89745372461592463173454782757725463749",
+            "1.3.6.1.4.1.14519.5.2.1.58318247044430195553873520657465743085",
+            "1.3.6.1.4.1.14519.5.2.1.117481625274455134418506117317574459657"
+          ]
         },
         "StudyDate": {
           "type": "TEXT",
-          "description": "Study date in YYYYMMDD format",
-          "example": "20080608",
-          "searchable": true,
-          "date_format": "YYYYMMDD"
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20061121",
+            "19990816",
+            "20060404"
+          ]
+        },
+        "StudyTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "070414.187000",
+            "082353.187000",
+            "071921.937000"
+          ]
         },
         "StudyDescription": {
           "type": "TEXT",
-          "description": "Description of the imaging study",
-          "example": "Follow-up Imaging Set 3",
-          "searchable": true
-        }
-      },
-      "use_cases": [
-        "Find studies by date range",
-        "Search studies by description",
-        "Get all studies for a patient"
-      ]
-    },
-
-    "MR": {
-      "description": "MRI series metadata - primary table for MR image segmentation",
-      "row_count": 3868,
-      "primary_key": "SeriesInstanceUID",
-      "key_columns": {
-        "SeriesInstanceUID": {
-          "type": "TEXT",
-          "description": "Unique DICOM series identifier",
-          "example": "1.3.6.1.4.1.14519.5.2.1.12235678466658573023964095...",
-          "searchable": true
-        },
-        "PatientID": {
-          "type": "TEXT",
-          "description": "Links to PATIENT table",
-          "example": "GammaKnife-Hippocampal-001-VS",
-          "foreign_key": "PATIENT.PatientID"
-        },
-        "StudyInstanceUID": {
-          "type": "TEXT",
-          "description": "Links to STUDY table",
-          "example": "1.3.6.1.4.1.14519.5.2.1.89745372461592463173454782...",
-          "foreign_key": "STUDY.StudyInstanceUID"
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "Gamma Knife Treatment Planning Data",
+            "Gamma Knife Treatment Planning Data",
+            "Gamma Knife Treatment Planning Data"
+          ]
         },
         "Modality": {
           "type": "TEXT",
-          "description": "Imaging modality (always 'MR' in this table)",
-          "example": "MR",
-          "fixed_value": "MR"
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "CT",
+            "CT",
+            "CT"
+          ]
         },
         "SeriesDate": {
           "type": "TEXT",
-          "description": "Series acquisition date in YYYYMMDD format",
-          "example": "20061121",
-          "searchable": true,
-          "date_format": "YYYYMMDD"
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20061121",
+            "19990816",
+            "20060404"
+          ]
+        },
+        "SeriesTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "071517.984000",
+            "091251.406000",
+            "072144.796000"
+          ]
         },
         "SeriesDescription": {
           "type": "TEXT",
-          "description": "Description of MR sequence/protocol",
-          "example": "T1 AXI non fat satTHRU ROI Co-registered to CT",
-          "searchable": true,
-          "sequence_info": true
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1 MM H21s",
+            "Cerebrum  1.0  H21s",
+            "1 MM H21s"
+          ]
         },
-        "SequenceName": {
+        "Manufacturer": {
           "type": "TEXT",
-          "description": "MR pulse sequence name",
-          "example": "",
-          "sequence_info": true
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "SIEMENS",
+            "SIEMENS",
+            "SIEMENS"
+          ]
         },
-        "ProtocolName": {
+        "ManufacturerModelName": {
           "type": "TEXT",
-          "description": "Imaging protocol name",
-          "example": "T1 AXI non fat satTHRU ROI",
-          "sequence_info": true
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "Sensation 16",
+            "Sensation 10",
+            "Sensation 16"
+          ]
+        },
+        "InstitutionName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "AcquisitionDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20061121",
+            "19990816",
+            "20060404"
+          ]
+        },
+        "AcquisitionTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "071427.831691",
+            "091225.711103",
+            "072113.390464"
+          ]
+        },
+        "ContentDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20061121",
+            "19990816",
+            "20060404"
+          ]
+        },
+        "ContentTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "071427.831691",
+            "091225.711103",
+            "072113.390464"
+          ]
+        },
+        "FrameOfReferenceUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.307815210652412976602041815911138656797",
+            "1.3.6.1.4.1.14519.5.2.1.194826481098331370404437081100963957643",
+            "1.3.6.1.4.1.14519.5.2.1.179231677953559526267417141795200507476"
+          ]
+        },
+        "PatientPosition": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "HFS",
+            "HFS",
+            "HFS"
+          ]
         },
         "SliceThickness": {
           "type": "TEXT",
-          "description": "Slice thickness in mm",
-          "example": "1",
-          "technical_param": true
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1",
+            "1",
+            "1"
+          ]
+        },
+        "KVP": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "120",
+            "120",
+            "120"
+          ]
+        },
+        "Exposure": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "400",
+            "380",
+            "400"
+          ]
+        },
+        "CTDIvol": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "ScanOptions": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "ReconstructionDiameter": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "260",
+            "280",
+            "268"
+          ]
+        },
+        "RescaleType": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "WindowCenter": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            " 54000",
+            " 73050",
+            " 54000"
+          ]
+        },
+        "WindowWidth": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            " 2 58000",
+            " 3 28000",
+            " 2 58000"
+          ]
         },
         "NumberOfSlices": {
           "type": "TEXT",
-          "description": "Number of image slices",
-          "example": "229",
-          "technical_param": true
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "229",
+            "173",
+            "237"
+          ]
+        },
+        "DBCreationUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBCreationTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142143",
+            "20240314T144120",
+            "20240314T145127"
+          ]
+        },
+        "DBUpdateUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBUpdateTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142143",
+            "20240314T144120",
+            "20240314T145127"
+          ]
+        },
+        "DBLastAccessUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBLastAccessTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142143",
+            "20240314T144120",
+            "20240314T145127"
+          ]
+        },
+        "Tasks": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Notes": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Comments": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Status": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
         }
       },
-      "sequence_identification": {
-        "T1": {
-          "patterns": ["T1", "t1"],
-          "common_descriptions": ["T1 AXI", "T1 weighted"]
-        },
-        "T1_contrast": {
-          "patterns": ["T1", "contrast", "Gd", "gadolinium"],
-          "common_descriptions": ["T1 post contrast", "T1+C"]
-        },
-        "T2": {
-          "patterns": ["T2", "t2"],
-          "common_descriptions": ["T2 weighted", "T2 AXI"]
-        },
-        "FLAIR": {
-          "patterns": ["FLAIR", "flair"],
-          "common_descriptions": ["FLAIR", "Fluid Attenuated"]
-        }
-      },
-      "use_cases": [
-        "Find MR images by sequence type (T1, T2, FLAIR)",
-        "Search by acquisition date",
-        "Find specific protocols",
-        "Filter by slice parameters"
-      ]
+      "foreign_keys": [],
+      "indexes": []
     },
-
-    "CT": {
-      "description": "CT series metadata",
-      "row_count": 390,
-      "primary_key": "SeriesInstanceUID",
-      "key_columns": {
+    "MR": {
+      "row_count": 3868,
+      "columns": {
         "SeriesInstanceUID": {
           "type": "TEXT",
-          "description": "Unique DICOM series identifier",
-          "searchable": true
+          "not_null": true,
+          "primary_key": true,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.122356784666585730239640958281350797677",
+            "1.3.6.1.4.1.14519.5.2.1.13565844223156724120558231608252052312",
+            "1.3.6.1.4.1.14519.5.2.1.136218998184304662522575704303574761857"
+          ]
         },
         "PatientID": {
           "type": "TEXT",
-          "description": "Links to PATIENT table",
-          "foreign_key": "PATIENT.PatientID"
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS"
+          ]
+        },
+        "PatientName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS"
+          ]
+        },
+        "PatientBirthDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "PatientSex": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "F",
+            "F",
+            "F"
+          ]
+        },
+        "StudyInstanceUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.89745372461592463173454782757725463749",
+            "1.3.6.1.4.1.14519.5.2.1.145600403375600517588285775201958130822",
+            "1.3.6.1.4.1.14519.5.2.1.274733276526363703899895300435488970927"
+          ]
+        },
+        "StudyDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20061121",
+            "20090531",
+            "20071210"
+          ]
+        },
+        "StudyTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "064027.406000",
+            "100036",
+            "075758.468000"
+          ]
+        },
+        "StudyDescription": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "Gamma Knife Treatment Planning Data",
+            "Follow-up Imaging Set 5",
+            "Follow-up Imaging Set 2"
+          ]
         },
         "Modality": {
           "type": "TEXT",
-          "description": "Imaging modality (always 'CT' in this table)",
-          "example": "CT",
-          "fixed_value": "CT"
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "MR",
+            "MR",
+            "MR"
+          ]
+        },
+        "SeriesDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20061121",
+            "20090531",
+            "20071210"
+          ]
+        },
+        "SeriesTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "065742.359000",
+            "101752",
+            "083417.843000"
+          ]
         },
         "SeriesDescription": {
           "type": "TEXT",
-          "description": "CT series description",
-          "example": "1 MM H21s",
-          "searchable": true
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "T1 AXI   non fat satTHRU ROI Co-registered to CT",
+            "AX 3D FIESTA-C",
+            "T1 AXIAL 2MM PRE"
+          ]
+        },
+        "Manufacturer": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "SIEMENS / MIM Software",
+            "GE MEDICAL SYSTEMS",
+            "SIEMENS"
+          ]
+        },
+        "ManufacturerModelName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "SymphonyTim",
+            "Signa HDxt",
+            "Espree"
+          ]
+        },
+        "InstitutionName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "AcquisitionDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20061121",
+            "20090531",
+            "20071210"
+          ]
+        },
+        "AcquisitionTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "065526.348",
+            "101752",
+            "082947.077500"
+          ]
+        },
+        "ContentDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20110424",
+            "20090531",
+            "20071210"
+          ]
+        },
+        "ContentTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "132447.197",
+            "101752",
+            "083417.875000"
+          ]
+        },
+        "FrameOfReferenceUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.307815210652412976602041815911138656797",
+            "1.3.6.1.4.1.14519.5.2.1.123011969390229232972635862202677186569",
+            "1.3.6.1.4.1.14519.5.2.1.167898107324781467632826680750013802253"
+          ]
+        },
+        "PatientPosition": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "HFS",
+            "HFS",
+            "HFS"
+          ]
+        },
+        "ProtocolName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "T1 AXI   non fat satTHRU ROI",
+            "BRAIN & IAC/7",
+            "T1 AXIAL 2MM PRE"
+          ]
+        },
+        "SequenceName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            "*se2d1"
+          ]
+        },
+        "MRAcquisitionType": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "2D",
+            "3D",
+            "2D"
+          ]
+        },
+        "MagneticFieldStrength": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "3",
+            "1.5"
+          ]
+        },
+        "BodyPartExamined": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "SliceThickness": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1",
+            "1",
+            "2"
+          ]
+        },
+        "RescaleType": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "WindowCenter": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "642",
+            "15339",
+            "641"
+          ]
+        },
+        "WindowWidth": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1274",
+            "30679",
+            "1346"
+          ]
+        },
+        "NumberOfSlices": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "229",
+            "116",
+            "21"
+          ]
+        },
+        "DBCreationUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBCreationTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142144",
+            "20240314T142145",
+            "20240314T142145"
+          ]
+        },
+        "DBUpdateUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBUpdateTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142144",
+            "20240314T142145",
+            "20240314T142145"
+          ]
+        },
+        "DBLastAccessUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBLastAccessTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142144",
+            "20240314T142145",
+            "20240314T142145"
+          ]
+        },
+        "Tasks": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Notes": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Comments": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Status": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
         }
       },
-      "use_cases": [
-        "Find CT images for treatment planning",
-        "Search by series description"
-      ]
-    }
-  },
-
-  "natural_language_queries": {
-    "examples": [
-      {
-        "input": "Find all MR T1 images for patient GammaKnife-Hippocampal-001",
-        "sql_translation": "SELECT * FROM MR WHERE PatientID LIKE '%GammaKnife-Hippocampal-001%' AND (SeriesDescription LIKE '%T1%' OR ProtocolName LIKE '%T1%')",
-        "mcp_tool_call": {
-          "tool_name": "query_patient_images",
-          "arguments": {
-            "patient_id": "GammaKnife-Hippocampal-001",
-            "modality": "MR",
-            "sequence_type": "T1"
-          }
-        }
-      },
-      {
-        "input": "Get MR images from June 2008 studies",
-        "sql_translation": "SELECT * FROM MR WHERE SeriesDate LIKE '200806%'",
-        "mcp_tool_call": {
-          "tool_name": "query_patient_images", 
-          "arguments": {
-            "modality": "MR",
-            "date_filter": "200806"
-          }
-        }
-      },
-      {
-        "input": "Find FLAIR sequences for brain imaging",
-        "sql_translation": "SELECT * FROM MR WHERE SeriesDescription LIKE '%FLAIR%' OR ProtocolName LIKE '%FLAIR%'",
-        "mcp_tool_call": {
-          "tool_name": "query_patient_images",
-          "arguments": {
-            "modality": "MR", 
-            "sequence_type": "FLAIR"
-          }
-        }
-      }
-    ]
-  },
-
-  "mcp_integration": {
-    "recommended_tool_schema": {
-      "tool_name": "query_rtplan_database",
-      "description": "Query the RTPlanDB database for patient imaging data",
-      "parameters": {
-        "patient_id": {
-          "type": "string",
-          "description": "Patient ID (supports partial matching)"
-        },
-        "patient_name": {
-          "type": "string", 
-          "description": "Patient name (supports partial matching)"
-        },
-        "modality": {
-          "type": "string",
-          "enum": ["MR", "CT", "PT"],
-          "description": "Imaging modality"
-        },
-        "sequence_type": {
-          "type": "string",
-          "enum": ["T1", "T1_contrast", "T2", "FLAIR"],
-          "description": "MR sequence type (for MR modality)"
-        },
-        "date_from": {
-          "type": "string",
-          "description": "Start date in YYYYMMDD format"
-        },
-        "date_to": {
-          "type": "string", 
-          "description": "End date in YYYYMMDD format"
-        },
-        "series_description": {
-          "type": "string",
-          "description": "Series description text search"
-        }
-      }
+      "foreign_keys": [],
+      "indexes": []
     },
-    
-    "sequence_detection_logic": {
-      "T1": "SeriesDescription LIKE '%T1%' OR ProtocolName LIKE '%T1%'",
-      "T1_contrast": "(SeriesDescription LIKE '%T1%' OR ProtocolName LIKE '%T1%') AND (SeriesDescription LIKE '%contrast%' OR SeriesDescription LIKE '%Gd%' OR SeriesDescription LIKE '%gadolinium%')",
-      "T2": "SeriesDescription LIKE '%T2%' OR ProtocolName LIKE '%T2%'", 
-      "FLAIR": "SeriesDescription LIKE '%FLAIR%' OR ProtocolName LIKE '%FLAIR%'"
-    }
-  },
-
-  "file_path_resolution": {
-    "note": "This database contains metadata only, not file paths",
-    "resolution_strategy": "File paths need to be constructed based on SeriesInstanceUID and standard DICOM file organization",
-    "suggested_mapping": {
-      "pattern": "C:/ARTDaemon/Segman/dcm2nifti/{PatientID}/{SeriesInstanceUID}/image.nii.gz",
-      "example": "C:/ARTDaemon/Segman/dcm2nifti/GammaKnife-Hippocampal-001-VS/1.3.6.1.4.1.14519.5.2.1.12235678466658573023964095/image.nii.gz"
+    "PATIENT": {
+      "row_count": 390,
+      "columns": {
+        "PatientID": {
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": true,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-002-M",
+            "GammaKnife-Hippocampal-006-TGN"
+          ]
+        },
+        "PatientName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-002-M",
+            "GammaKnife-Hippocampal-006-TGN"
+          ]
+        },
+        "PatientBirthDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "PatientSex": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "F",
+            "M",
+            "M"
+          ]
+        },
+        "DBCreationUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBCreationTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142143",
+            "20240314T144120",
+            "20240314T145128"
+          ]
+        },
+        "DBUpdateUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBUpdateTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142201",
+            "20240314T144126",
+            "20240314T145134"
+          ]
+        },
+        "DBLastAccessUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBLastAccessTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142201",
+            "20240314T144126",
+            "20240314T145134"
+          ]
+        },
+        "Tasks": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "Notes": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "Comments": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "Status": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        }
+      },
+      "foreign_keys": [],
+      "indexes": []
     },
-    "verification_needed": "Check if this path pattern matches actual file organization"
-  },
-
-  "recommended_updates": {
-    "database_path_in_config": "/mnt/c/ARTDaemon/Segman/Imports/Dcm/GK-Hippo/DataBase/plandb/RTPlanDB.sqlite",
-    "mcp_server_updates": [
-      "Update database path to point to this RTPlanDB.sqlite",
-      "Modify query_patient_images to use MR/CT tables instead of assumed schema",
-      "Add sequence type detection logic",
-      "Implement file path construction from SeriesInstanceUID",
-      "Add date range filtering capabilities"
-    ]
+    "PT": {
+      "row_count": 0,
+      "columns": {
+        "SeriesInstanceUID": {
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": true,
+          "default_value": null,
+          "sample_values": []
+        },
+        "PatientID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "PatientName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "PatientBirthDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "PatientSex": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "StudyInstanceUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "StudyDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "StudyTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "StudyDescription": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Modality": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "SeriesDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "SeriesTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "SeriesDescription": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Manufacturer": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "ManufacturerModelName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "InstitutionName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "PatientAge": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "PatientSize": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "PatientWeight": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "AcquisitionDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "AcquisitionTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "ContentDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "ContentTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "FrameOfReferenceUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "PatientPosition": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "RescaleType": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "BodyPartExamined": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "SliceThickness": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "ReconstructionMethod": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "WindowCenter": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "WindowWidth": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "RelatedSeriesUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "NumberOfSlices": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "DBCreationUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "DBCreationTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "DBUpdateUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "DBUpdateTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "DBLastAccessUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "DBLastAccessTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Tasks": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Notes": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Comments": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Status": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        }
+      },
+      "foreign_keys": [],
+      "indexes": []
+    },
+    "REG": {
+      "row_count": 872,
+      "columns": {
+        "SOPInstanceUID": {
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": true,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.218424264409823252022823111571694419733",
+            "1.3.6.1.4.1.14519.5.2.1.112011423088990543610037626728900724164",
+            "1.3.6.1.4.1.14519.5.2.1.31512263174068536990210649861646904831"
+          ]
+        },
+        "PatientID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS"
+          ]
+        },
+        "PatientName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS"
+          ]
+        },
+        "PatientBirthDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "PatientSex": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "F",
+            "F",
+            "F"
+          ]
+        },
+        "StudyInstanceUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.89745372461592463173454782757725463749",
+            "1.3.6.1.4.1.14519.5.2.1.89745372461592463173454782757725463749",
+            "1.3.6.1.4.1.14519.5.2.1.89745372461592463173454782757725463749"
+          ]
+        },
+        "StudyDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20061121",
+            "20061121",
+            "20061121"
+          ]
+        },
+        "StudyTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "070414.187000",
+            "070414.187000",
+            "070414.187000"
+          ]
+        },
+        "StudyDescription": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "Gamma Knife Treatment Planning Data",
+            "Gamma Knife Treatment Planning Data",
+            "Gamma Knife Treatment Planning Data"
+          ]
+        },
+        "Modality": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "REG",
+            "REG",
+            "REG"
+          ]
+        },
+        "SeriesInstanceUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.325619502950550106652715231450255851324",
+            "1.3.6.1.4.1.14519.5.2.1.107989356414062443230823474301476051705",
+            "1.3.6.1.4.1.14519.5.2.1.149428888109654948356693472437228899454"
+          ]
+        },
+        "SeriesDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20110424",
+            "20110424",
+            "20110424"
+          ]
+        },
+        "SeriesTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "132446.517",
+            "132511.651",
+            "132500.459"
+          ]
+        },
+        "SeriesDescription": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "CT to MR Rigid Registration",
+            "CT to MR Rigid Registration",
+            "CT to MR Rigid Registration"
+          ]
+        },
+        "Manufacturer": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "MIM Software Inc.",
+            "MIM Software Inc.",
+            "MIM Software Inc."
+          ]
+        },
+        "ManufacturerModelName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "MIM",
+            "MIM",
+            "MIM"
+          ]
+        },
+        "InstitutionName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "ContentDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20110424",
+            "20110424",
+            "20110424"
+          ]
+        },
+        "ContentTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "132446.517",
+            "132511.651",
+            "132500.459"
+          ]
+        },
+        "FrameOfReferenceUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.307815210652412976602041815911138656797",
+            "1.3.6.1.4.1.14519.5.2.1.307815210652412976602041815911138656797",
+            "1.3.6.1.4.1.14519.5.2.1.307815210652412976602041815911138656797"
+          ]
+        },
+        "ReferencedImageModality1": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "CT",
+            "CT",
+            "CT"
+          ]
+        },
+        "ReferencedImageModality2": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "MR",
+            "MR",
+            "MR"
+          ]
+        },
+        "ReferencedSeriesUID1": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.295186214308620653599429047603581571314",
+            "1.3.6.1.4.1.14519.5.2.1.295186214308620653599429047603581571314",
+            "1.3.6.1.4.1.14519.5.2.1.295186214308620653599429047603581571314"
+          ]
+        },
+        "ReferencedSeriesUID2": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.195632419874499055210543806187235579657",
+            "1.3.6.1.4.1.14519.5.2.1.6863208189655485148276444215348638228",
+            "1.3.6.1.4.1.14519.5.2.1.51937519276478149083315402027605302742"
+          ]
+        },
+        "FrameOfReferenceUID1": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.307815210652412976602041815911138656797",
+            "1.3.6.1.4.1.14519.5.2.1.307815210652412976602041815911138656797",
+            "1.3.6.1.4.1.14519.5.2.1.307815210652412976602041815911138656797"
+          ]
+        },
+        "FrameOfReferenceUID2": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.283286153617700982964272019178790259744",
+            "1.3.6.1.4.1.14519.5.2.1.60766110835478878345245919191185626182",
+            "1.3.6.1.4.1.14519.5.2.1.60766110835478878345245919191185626182"
+          ]
+        },
+        "RegAffineMatrix": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "0.9997491    0.01375001    0.01768048             0   -0.01394836     0.9998406    0.01114465       ",
+            "0.9998552    0.01163366    0.01242314             0   -0.01183735     0.9997947    0.01645028       ",
+            "0.9994892   0.009093066    0.03063522             0  -0.009622918     0.9998059     0.0171928       "
+          ]
+        },
+        "DVF": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "NO",
+            "NO",
+            "NO"
+          ]
+        },
+        "DBCreationUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBCreationTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142154",
+            "20240314T142154",
+            "20240314T142155"
+          ]
+        },
+        "DBUpdateUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBUpdateTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142154",
+            "20240314T142154",
+            "20240314T142155"
+          ]
+        },
+        "DBLastAccessUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBLastAccessTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142154",
+            "20240314T142154",
+            "20240314T142155"
+          ]
+        },
+        "Tasks": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Notes": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Comments": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Status": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        }
+      },
+      "foreign_keys": [],
+      "indexes": []
+    },
+    "RTDOSE": {
+      "row_count": 928,
+      "columns": {
+        "SOPInstanceUID": {
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": true,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.3935996515253922901936435996738527791",
+            "1.3.6.1.4.1.14519.5.2.1.296544201207239907728451847353514200785",
+            "1.3.6.1.4.1.14519.5.2.1.17719566518354172490790272014488646064"
+          ]
+        },
+        "PatientID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS"
+          ]
+        },
+        "PatientName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS"
+          ]
+        },
+        "PatientBirthDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "PatientSex": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "F",
+            "F",
+            "F"
+          ]
+        },
+        "StudyInstanceUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.89745372461592463173454782757725463749",
+            "1.3.6.1.4.1.14519.5.2.1.91236319619253113645518762244554866846",
+            "1.3.6.1.4.1.14519.5.2.1.91236319619253113645518762244554866846"
+          ]
+        },
+        "StudyDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20061121",
+            "20061121",
+            "20061121"
+          ]
+        },
+        "StudyTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "070414.187000",
+            "064027.406000",
+            "064027.406000"
+          ]
+        },
+        "StudyDescription": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "Gamma Knife Treatment Planning Data",
+            "Gamma Knife Treatment Planning Data",
+            "Gamma Knife Treatment Planning Data"
+          ]
+        },
+        "Modality": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "RTDOSE",
+            "RTDOSE",
+            "RTDOSE"
+          ]
+        },
+        "SeriesInstanceUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.248069351108057063471475622221234992330",
+            "1.3.6.1.4.1.14519.5.2.1.262364998097785801657140959381011617556",
+            "1.3.6.1.4.1.14519.5.2.1.160341032348014724128174480574065269902"
+          ]
+        },
+        "SeriesDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "SeriesTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "SeriesDescription": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "Manufacturer": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "Elekta",
+            "Elekta",
+            "Elekta"
+          ]
+        },
+        "ManufacturerModelName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaPlan",
+            "GammaPlan",
+            "GammaPlan"
+          ]
+        },
+        "InstitutionName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "DoseSummationType": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "PLAN",
+            "PLAN",
+            "PLAN"
+          ]
+        },
+        "DoseComment": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "Dose algorithm: TMR 10",
+            "Dose algorithm: TMR 10",
+            "Dose algorithm: TMR 10"
+          ]
+        },
+        "FrameOfReferenceUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.307815210652412976602041815911138656797",
+            "1.3.6.1.4.1.14519.5.2.1.283286153617700982964272019178790259744",
+            "1.3.6.1.4.1.14519.5.2.1.60766110835478878345245919191185626182"
+          ]
+        },
+        "ReferencedRTPlanUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.76513790153752765150537858975313605280",
+            "1.3.6.1.4.1.14519.5.2.1.138089089392601995709919124380348155302",
+            "1.3.6.1.4.1.14519.5.2.1.299268556607995578668819081979731257907"
+          ]
+        },
+        "ReferencedBeamNumber": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "DBCreationUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBCreationTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142155",
+            "20240314T142156",
+            "20240314T142157"
+          ]
+        },
+        "DBUpdateUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBUpdateTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142155",
+            "20240314T142156",
+            "20240314T142157"
+          ]
+        },
+        "DBLastAccessUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBLastAccessTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142155",
+            "20240314T142156",
+            "20240314T142157"
+          ]
+        },
+        "Tasks": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Notes": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Comments": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Status": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        }
+      },
+      "foreign_keys": [],
+      "indexes": []
+    },
+    "RTPLANDB": {
+      "row_count": 928,
+      "columns": {
+        "SOPInstanceUID": {
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": true,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.11128553723507141880406773897345359624",
+            "1.3.6.1.4.1.14519.5.2.1.309318010498456124945046112327856753301",
+            "1.3.6.1.4.1.14519.5.2.1.198752011793419692567136271347719236412"
+          ]
+        },
+        "PatientID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-002-M",
+            "GammaKnife-Hippocampal-002-M",
+            "GammaKnife-Hippocampal-003-M"
+          ]
+        },
+        "PatientName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-002-M",
+            "GammaKnife-Hippocampal-002-M",
+            "GammaKnife-Hippocampal-003-M"
+          ]
+        },
+        "PatientBirthDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "PatientSex": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "M",
+            "M",
+            "M"
+          ]
+        },
+        "StudyInstanceUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.58318247044430195553873520657465743085",
+            "1.3.6.1.4.1.14519.5.2.1.58318247044430195553873520657465743085",
+            "1.3.6.1.4.1.14519.5.2.1.248913887001601343817951143660725451663"
+          ]
+        },
+        "StudyDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "19990816",
+            "19990816",
+            "20071217"
+          ]
+        },
+        "StudyTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "000000",
+            "000000",
+            "074236.468000"
+          ]
+        },
+        "StudyDescription": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "Gamma Knife Treatment Planning Data",
+            "Gamma Knife Treatment Planning Data",
+            "Gamma Knife Treatment Planning Data"
+          ]
+        },
+        "Modality": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "RTPLAN",
+            "RTPLAN",
+            "RTPLAN"
+          ]
+        },
+        "SeriesInstanceUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.179123656700071096846219304522962179691",
+            "1.3.6.1.4.1.14519.5.2.1.161280846740314511189420430569382660543",
+            "1.3.6.1.4.1.14519.5.2.1.215687001408336549360754264154893210142"
+          ]
+        },
+        "SeriesDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "SeriesTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "SeriesDescription": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "Gamma Knife Treatment Plan",
+            "Gamma Knife Treatment Plan",
+            "Gamma Knife Treatment Plan"
+          ]
+        },
+        "Manufacturer": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "Elekta",
+            "Elekta",
+            "Elekta"
+          ]
+        },
+        "ManufacturerModelName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaPlan",
+            "GammaPlan",
+            "GammaPlan"
+          ]
+        },
+        "InstitutionName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "PhysiciansOfRecord": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "RTPlanLabel": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "Gamma Knife Plan",
+            "Gamma Knife Plan",
+            "Plan1"
+          ]
+        },
+        "RTPlanName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "Gamma Knife Treatment Plan",
+            "Gamma Knife Treatment Plan",
+            "Gamma Knife Treatment Plan"
+          ]
+        },
+        "RTPlanDescription": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "RTPlanDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "19990816",
+            "19990816",
+            "20101201"
+          ]
+        },
+        "RTPlanTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "FrameOfReferenceUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.194826481098331370404437081100963957643",
+            "1.3.6.1.4.1.14519.5.2.1.109822114061968905855983870211562743174",
+            "1.3.6.1.4.1.14519.5.2.1.37954990957410811927870362962182962212"
+          ]
+        },
+        "ApprovalStatus": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "UNAPPROVED",
+            "UNAPPROVED",
+            "UNAPPROVED"
+          ]
+        },
+        "ReferenceStructureSetUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.161824661857539411548650208404328509977",
+            "1.3.6.1.4.1.14519.5.2.1.59676973918157137245905381022227305884",
+            "1.3.6.1.4.1.14519.5.2.1.205873004106403250549877244959927493581"
+          ]
+        },
+        "TreatmentMachineName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "LGK C",
+            "LGK C",
+            "4C"
+          ]
+        },
+        "ReferencedImageSeriesUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.133093787375603428932850066260902799262",
+            "1.3.6.1.4.1.14519.5.2.1.278328352195799314487813720580113623066",
+            "1.3.6.1.4.1.14519.5.2.1.2628799730088749966266041390806639452"
+          ]
+        },
+        "ReferencedImageModality": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "CT",
+            "MR",
+            "MR"
+          ]
+        },
+        "StructureSetLabel": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "ROIs in ct2",
+            "ROIs in axial",
+            "ROIs in MRt"
+          ]
+        },
+        "ReferencedRTDoseUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.182528477843165735927682462249180126802",
+            "1.3.6.1.4.1.14519.5.2.1.78631526662528257857966209478711377352",
+            "1.3.6.1.4.1.14519.5.2.1.160355941634782340323939668456390914841"
+          ]
+        },
+        "ReferencedRTBeamDoseUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "DBCreationUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBCreationTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T144126",
+            "20240314T144126",
+            "20240314T152132"
+          ]
+        },
+        "DBUpdateUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBUpdateTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T144126",
+            "20240314T144126",
+            "20240314T152132"
+          ]
+        },
+        "DBLastAccessUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBLastAccessTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T144126",
+            "20240314T144126",
+            "20240314T152132"
+          ]
+        },
+        "Tasks": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "Notes": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "Comments": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "Status": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        }
+      },
+      "foreign_keys": [],
+      "indexes": []
+    },
+    "RTSTRUCT": {
+      "row_count": 1321,
+      "columns": {
+        "SOPInstanceUID": {
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": true,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.164272412122404057052393504243613830245",
+            "1.3.6.1.4.1.14519.5.2.1.265949085206850692909268579013779887123",
+            "1.3.6.1.4.1.14519.5.2.1.124213239010122312595774709862593535596"
+          ]
+        },
+        "PatientID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS"
+          ]
+        },
+        "PatientName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS"
+          ]
+        },
+        "PatientBirthDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "PatientSex": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "F",
+            "F",
+            "F"
+          ]
+        },
+        "StudyInstanceUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.89745372461592463173454782757725463749",
+            "1.3.6.1.4.1.14519.5.2.1.89745372461592463173454782757725463749",
+            "1.3.6.1.4.1.14519.5.2.1.91236319619253113645518762244554866846"
+          ]
+        },
+        "StudyDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20061121",
+            "20061121",
+            "20061121"
+          ]
+        },
+        "StudyTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "070414.187000",
+            "070414.187000",
+            "064027.406000"
+          ]
+        },
+        "StudyDescription": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "Gamma Knife Treatment Planning Data",
+            "Gamma Knife Treatment Planning Data",
+            "Gamma Knife Treatment Planning Data"
+          ]
+        },
+        "Modality": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "RTSTRUCT",
+            "RTSTRUCT",
+            "RTSTRUCT"
+          ]
+        },
+        "SeriesInstanceUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.102924773140434063435957991731848057026",
+            "1.3.6.1.4.1.14519.5.2.1.339019464021273189327676406372378064957",
+            "1.3.6.1.4.1.14519.5.2.1.43477449527031920408321978785665580641"
+          ]
+        },
+        "SeriesDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20110504",
+            "",
+            ""
+          ]
+        },
+        "SeriesTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "123742.013",
+            "",
+            ""
+          ]
+        },
+        "SeriesDescription": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "Hippocampus Research Contours",
+            "Gamma Knife Planning Contours",
+            "Gamma Knife Planning Contours"
+          ]
+        },
+        "Manufacturer": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "MIM Software Inc.",
+            "Elekta",
+            "Elekta"
+          ]
+        },
+        "ManufacturerModelName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "MIM",
+            "GammaPlan",
+            "GammaPlan"
+          ]
+        },
+        "InstitutionName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "StructureSetLabel": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "RTstruct",
+            "ROIs in CT",
+            "ROIs in MRciss"
+          ]
+        },
+        "StructureSetDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20110504",
+            "",
+            ""
+          ]
+        },
+        "StructureSetTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "123742.015",
+            "",
+            ""
+          ]
+        },
+        "FrameOfReferenceUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "1.3.6.1.4.1.14519.5.2.1.307815210652412976602041815911138656797",
+            "1.3.6.1.4.1.14519.5.2.1.60766110835478878345245919191185626182"
+          ]
+        },
+        "ReferencedImageSeriesUID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.295186214308620653599429047603581571314",
+            "1.3.6.1.4.1.14519.5.2.1.295186214308620653599429047603581571314",
+            "1.3.6.1.4.1.14519.5.2.1.51937519276478149083315402027605302742"
+          ]
+        },
+        "ReferencedImageModality": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "CT",
+            "CT",
+            "MR"
+          ]
+        },
+        "DBCreationUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBCreationTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142158",
+            "20240314T142158",
+            "20240314T142159"
+          ]
+        },
+        "DBUpdateUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBUpdateTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142158",
+            "20240314T142158",
+            "20240314T142159"
+          ]
+        },
+        "DBLastAccessUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBLastAccessTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142158",
+            "20240314T142158",
+            "20240314T142159"
+          ]
+        },
+        "Tasks": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Notes": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Comments": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Status": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        }
+      },
+      "foreign_keys": [],
+      "indexes": []
+    },
+    "STUDY": {
+      "row_count": 1509,
+      "columns": {
+        "StudyInstanceUID": {
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": true,
+          "default_value": null,
+          "sample_values": [
+            "1.3.6.1.4.1.14519.5.2.1.336755304095884000313843245019578898383",
+            "1.3.6.1.4.1.14519.5.2.1.274733276526363703899895300435488970927",
+            "1.3.6.1.4.1.14519.5.2.1.46429692570841601236174739309779212699"
+          ]
+        },
+        "PatientID": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS"
+          ]
+        },
+        "PatientName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS",
+            "GammaKnife-Hippocampal-001-VS"
+          ]
+        },
+        "PatientBirthDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "PatientSex": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "F",
+            "F",
+            "F"
+          ]
+        },
+        "StudyDate": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20080608",
+            "20071210",
+            "20061121"
+          ]
+        },
+        "StudyTime": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "064709.968000",
+            "075758.468000",
+            "064027.406000"
+          ]
+        },
+        "StudyDescription": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "Follow-up Imaging Set 3",
+            "Follow-up Imaging Set 2",
+            "Gamma Knife Treatment Planning Data"
+          ]
+        },
+        "DBCreationUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBCreationTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142146",
+            "20240314T142145",
+            "20240314T142148"
+          ]
+        },
+        "DBUpdateUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBUpdateTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142149",
+            "20240314T142150",
+            "20240314T142151"
+          ]
+        },
+        "DBLastAccessUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBLastAccessTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T142149",
+            "20240314T142150",
+            "20240314T142151"
+          ]
+        },
+        "Tasks": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "Notes": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "Comments": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "Status": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "",
+            "",
+            ""
+          ]
+        }
+      },
+      "foreign_keys": [],
+      "indexes": []
+    },
+    "USER": {
+      "row_count": 3,
+      "columns": {
+        "UserID": {
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": true,
+          "default_value": null,
+          "sample_values": [
+            "test",
+            "guest",
+            "Admin"
+          ]
+        },
+        "Password": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "test_2022",
+            "guest_2022",
+            "Admin_2022"
+          ]
+        },
+        "LastName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "FirstName": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Department": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Institute": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Email": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Phone": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "AccountRoles": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "User",
+            "Guest",
+            "Admin"
+          ]
+        },
+        "AccountStatus": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "Active",
+            "Active",
+            "Active"
+          ]
+        },
+        "DBCreationUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBCreationTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T140235",
+            "20240314T140236",
+            "20240314T140236"
+          ]
+        },
+        "DBUpdateUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBUpdateTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T140235",
+            "20240314T140236",
+            "20240314T140236"
+          ]
+        },
+        "DBLastAccessUser": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "DBLastAccessTimeStamp": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": [
+            "20240314T140235",
+            "20240314T140236",
+            "20240314T140236"
+          ]
+        },
+        "Tasks": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Notes": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Comments": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        },
+        "Status": {
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null,
+          "sample_values": []
+        }
+      },
+      "foreign_keys": [],
+      "indexes": []
+    }
   }
 }
