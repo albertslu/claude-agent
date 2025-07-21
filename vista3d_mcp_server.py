@@ -289,15 +289,14 @@ class Vista3DMCPServer:
         return image_paths
     
 
-    def query_patient_images(self, patient_id: Optional[str] = None, 
-                           patient_name: Optional[str] = None,
-                           series_instance_uid: Optional[str] = None,
-                           study_instance_uid: Optional[str] = None,
-                           modality: Optional[str] = None,
-                           sequence_type: Optional[str] = None,
-                           date_from: Optional[str] = None,
-                           date_to: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Query SQLite database to find patient images based on actual database schema"""
+    def query_patient_images(self, modality: Optional[str] = None, 
+                           filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+        """Query SQLite database to find patient images based on actual database schema
+        
+        Args:
+            modality: Imaging modality (MR, CT, PT) - determines which table to query
+            filters: Dictionary of column_name: value pairs for filtering
+        """
         
         if not Path(self.db_path).exists():
             return [{"error": f"Database not found at {self.db_path}"}]
@@ -333,38 +332,19 @@ class Vista3DMCPServer:
             table_columns = list(schema["tables"][table]["columns"].keys())
             self.logger.info(f"📋 Using table {table} with {len(table_columns)} columns from schema")
             
-            # Build column list for SELECT statement with proper aliases
-            # Map schema columns to expected aliases for backward compatibility
-            column_mapping = {
-                'PatientID': 'patient_id',
-                'PatientName': 'patient_name',
-                'SeriesInstanceUID': 'series_instance_uid', 
-                'StudyInstanceUID': 'study_instance_uid',
-                'Modality': 'modality',
-                'StudyDate': 'study_date',
-                'SeriesDate': 'series_date',
-                'SeriesDescription': 'series_description',
-                'ProtocolName': 'protocol_name',
-                'SequenceName': 'sequence_name',
-                'SliceThickness': 'slice_thickness',
-                'NumberOfSlices': 'number_of_slices'
-            }
-            
+            # Build column list for SELECT statement - use all columns from schema
             select_columns = []
             for col in table_columns:
-                if col in column_mapping:
-                    # Use predefined alias for known columns
-                    select_columns.append(f"{col} as {column_mapping[col]}")
-                else:
-                    # Use snake_case alias for other columns
-                    alias = col.lower().replace(' ', '_')
-                    select_columns.append(f"{col} as {alias}")
+                # Use snake_case alias for all columns
+                alias = col.lower().replace(' ', '_')
+                select_columns.append(f"{col} as {alias}")
             
             self.logger.debug(f"🔍 Selected {len(select_columns)} columns with proper aliases")
             
-            # Build dynamic query based on provided parameters
+            # Build dynamic query based on provided filters
             query_parts = []
             params = []
+            requested_sequence_type = None
             
             base_query = f"""
             SELECT DISTINCT 
@@ -373,32 +353,43 @@ class Vista3DMCPServer:
             WHERE 1=1
             """
             
-            if patient_id:
-                query_parts.append("AND PatientID LIKE ?")
-                params.append(f"%{patient_id}%")
-                
-            if patient_name:
-                query_parts.append("AND PatientName LIKE ?")
-                params.append(f"%{patient_name}%")
-                
-            if series_instance_uid:
-                query_parts.append("AND SeriesInstanceUID = ?")
-                params.append(series_instance_uid)
-                
-            if study_instance_uid:
-                query_parts.append("AND StudyInstanceUID = ?")
-                params.append(study_instance_uid)
-                
-            # Store sequence type for post-processing with sophisticated regex patterns
-            requested_sequence_type = sequence_type
-            
-            # Add date filtering
-            if date_from:
-                query_parts.append("AND SeriesDate >= ?")
-                params.append(date_from)
-            if date_to:
-                query_parts.append("AND SeriesDate <= ?")
-                params.append(date_to)
+            # Apply filters based on actual schema columns
+            if filters:
+                for filter_key, value in filters.items():
+                    if filter_key == 'sequence_type':
+                        # Special handling for sequence type filtering (post-processing)
+                        requested_sequence_type = value
+                        continue
+                    
+                    # Find matching column in schema (case-insensitive, flexible matching)
+                    matched_column = None
+                    for schema_column in table_columns:
+                        # Direct match
+                        if filter_key == schema_column:
+                            matched_column = schema_column
+                            break
+                        # Case-insensitive match
+                        elif filter_key.lower() == schema_column.lower():
+                            matched_column = schema_column
+                            break
+                        # Snake_case to CamelCase match
+                        elif filter_key.lower().replace('_', '') == schema_column.lower().replace('_', ''):
+                            matched_column = schema_column
+                            break
+                    
+                    if matched_column:
+                        # Use LIKE for text fields that might contain partial matches
+                        text_search_fields = ['PatientID', 'PatientName', 'SeriesDescription', 'ProtocolName']
+                        if matched_column in text_search_fields:
+                            query_parts.append(f"AND {matched_column} LIKE ?")
+                            params.append(f"%{value}%")
+                        else:
+                            # Use exact match for other fields
+                            query_parts.append(f"AND {matched_column} = ?")
+                            params.append(value)
+                        self.logger.debug(f"🔍 Mapped filter '{filter_key}' -> '{matched_column}' = '{value}'")
+                    else:
+                        self.logger.warning(f"⚠️  Filter column '{filter_key}' not found in {table} table schema (available: {table_columns})")
             
             final_query = base_query + " ".join(query_parts) + " ORDER BY StudyDate DESC, SeriesDate DESC"
             
@@ -446,25 +437,25 @@ class Vista3DMCPServer:
                     
                     self.logger.debug(f"✅ Matched: {requested_type} in {classified_sequences}")
                 
-                # Build result dictionary completely from schema - no hardcoded fields
+                # Build result dictionary using snake_case aliases from SELECT
                 result = {}
                 
-                # Add all available columns from the row
+                # Add all available columns - row.keys() should have the snake_case aliases
                 for key in row.keys():
                     result[key] = row[key]
                 
-                # Add computed fields
+                # Add computed fields if we have the necessary columns
                 patient_id_val = ""
                 series_instance_uid_val = ""
                 
-                # Find patient_id and series_instance_uid safely
+                # Find patient_id and series_instance_uid safely from row keys
                 for key in row.keys():
-                    if key.lower() == "patient_id":
+                    if key.lower() in ["patientid", "patient_id"]:
                         patient_id_val = row[key] or ""
-                    elif key.lower() == "series_instance_uid":
+                    elif key.lower() in ["seriesinstanceuid", "series_instance_uid"]:
                         series_instance_uid_val = row[key] or ""
                 
-                # Add constructed paths
+                # Add constructed paths if we have the necessary data
                 if patient_id_val and series_instance_uid_val:
                     result["input_file"] = f"C:\\ARTDaemon\\Segman\\dcm2nifti\\{patient_id_val}\\{series_instance_uid_val}\\image.nii.gz"
                     result["output_directory"] = f"C:\\ARTDaemon\\Segman\\dcm2nifti\\{patient_id_val}\\{series_instance_uid_val}\\Vista3D\\"
@@ -609,33 +600,20 @@ class Vista3DMCPServer:
                         },
                         {
                             "name": "query_patient_images",
-                            "description": "Query SQLite database to find patient images by patient ID, name, or other criteria",
+                            "description": "Query SQLite database to find patient images using dynamic schema-based filtering",
                             "inputSchema": {
                                 "type": "object",
                                 "properties": {
-                                    "patient_id": {
-                                        "type": "string",
-                                        "description": "Patient ID to search for (partial matches supported)"
-                                    },
-                                    "patient_name": {
-                                        "type": "string", 
-                                        "description": "Patient name to search for (partial matches supported)"
-                                    },
-                                    "series_instance_uid": {
-                                        "type": "string",
-                                        "description": "Series Instance UID for exact match"
-                                    },
-                                    "study_instance_uid": {
-                                        "type": "string",
-                                        "description": "Study Instance UID for exact match"
-                                    },
                                     "modality": {
                                         "type": "string",
-                                        "description": "Imaging modality (MR, CT, etc.)"
+                                        "description": "Imaging modality (MR, CT, PT) - determines which table to query"
                                     },
-                                    "sequence_type": {
-                                        "type": "string",
-                                        "description": "MR sequence type (T1, T1C, T1NC, T2, FLAIR, DWI, etc.)"
+                                    "filters": {
+                                        "type": "object",
+                                        "description": "Dictionary of column_name: value pairs for filtering. Column names should match database schema. Use 'sequence_type' for MR sequence filtering (T1, T1C, T1NC, T2, FLAIR, DWI, etc.)",
+                                        "additionalProperties": {
+                                            "type": "string"
+                                        }
                                     }
                                 },
                                 "required": []
@@ -785,29 +763,17 @@ class Vista3DMCPServer:
                 
                 elif tool_name == "query_patient_images":
                     # Extract query parameters
-                    patient_id = arguments.get("patient_id")
-                    patient_name = arguments.get("patient_name") 
-                    series_instance_uid = arguments.get("series_instance_uid")
-                    study_instance_uid = arguments.get("study_instance_uid")
                     modality = arguments.get("modality")
-                    sequence_type = arguments.get("sequence_type")
+                    filters = arguments.get("filters", {})
                     
                     self.logger.info(f"🔍 Database Query Parameters:")
-                    self.logger.info(f"  patient_id: {patient_id}")
-                    self.logger.info(f"  patient_name: {patient_name}")
                     self.logger.info(f"  modality: {modality}")
-                    self.logger.info(f"  sequence_type: {sequence_type}")
-                    self.logger.info(f"  series_instance_uid: {series_instance_uid}")
-                    self.logger.info(f"  study_instance_uid: {study_instance_uid}")
+                    self.logger.info(f"  filters: {filters}")
                     
                     # Query the database
                     results = self.query_patient_images(
-                        patient_id=patient_id,
-                        patient_name=patient_name,
-                        series_instance_uid=series_instance_uid,
-                        study_instance_uid=study_instance_uid,
                         modality=modality,
-                        sequence_type=sequence_type
+                        filters=filters
                     )
                     
                     self.logger.info(f"📊 Query Results: Found {len(results)} images")
@@ -816,9 +782,15 @@ class Vista3DMCPServer:
                     if results and "error" not in results[0]:
                         results_text = f"Found {len(results)} patient image(s):\n"
                         for i, result in enumerate(results, 1):
-                            results_text += f"\n{i}. Patient: {result.get('patient_id', 'N/A')} ({result.get('patient_name', 'N/A')})\n"
-                            results_text += f"   Modality: {result.get('modality', 'N/A')}\n"
-                            results_text += f"   Study Date: {result.get('study_date', 'N/A')}\n"
+                            # Find patient info using flexible key matching
+                            patient_id = result.get('patientid') or result.get('patient_id', 'N/A')
+                            patient_name = result.get('patientname') or result.get('patient_name', 'N/A')
+                            modality = result.get('modality', 'N/A')
+                            study_date = result.get('studydate') or result.get('study_date', 'N/A')
+                            
+                            results_text += f"\n{i}. Patient: {patient_id} ({patient_name})\n"
+                            results_text += f"   Modality: {modality}\n"
+                            results_text += f"   Study Date: {study_date}\n"
                             results_text += f"   Input File: {result.get('input_file', 'N/A')}\n"
                             results_text += f"   Output Directory: {result.get('output_directory', 'N/A')}\n"
                             if result.get('sequence_name'):
