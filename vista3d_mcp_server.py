@@ -378,13 +378,16 @@ class Vista3DMCPServer:
                             break
                     
                     if matched_column:
-                        # Use LIKE for text fields that might contain partial matches
-                        text_search_fields = ['PatientID', 'PatientName', 'SeriesDescription', 'ProtocolName']
-                        if matched_column in text_search_fields:
-                            query_parts.append(f"AND {matched_column} LIKE ?")
+                        # Use schema to determine matching strategy - TEXT fields use LIKE, others use exact match
+                        column_info = schema["tables"][table]["columns"][matched_column]
+                        column_type = column_info.get("type", "TEXT").upper()
+                        
+                        if column_type == "TEXT":
+                            # TEXT columns use case-insensitive LIKE for partial matching
+                            query_parts.append(f"AND {matched_column} LIKE ? COLLATE NOCASE")
                             params.append(f"%{value}%")
                         else:
-                            # Use exact match for other fields
+                            # Numeric/date columns use exact match
                             query_parts.append(f"AND {matched_column} = ?")
                             params.append(value)
                         self.logger.debug(f"🔍 Mapped filter '{filter_key}' -> '{matched_column}' = '{value}'")
